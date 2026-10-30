@@ -4,6 +4,7 @@
 	"main": "src/worker.ts",
 	"compatibility_date": "2026-10-23",
 	"assets": {
+		"directory": "/assets",
 		"not_found_handling": "single-page-application",
 		"run_worker_first": [
 			"/api/*"
