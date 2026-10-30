@@ -72,7 +72,7 @@ interface Media {
 
 const CORS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
@@ -271,6 +271,19 @@ export default {
         // Sync categories (empty array clears all)
         await syncPostCategories(env.DB, id, body.category_ids || []);
         return json({ success: true });
+      }
+
+      // Status only: 0 = draft, 1 = published, 3 = archived
+      if (method === "PATCH") {
+        const body = await request.json() as { published?: number };
+        if (![0, 1, 3].includes(Number(body.published))) {
+          return json({ error: "published must be 0, 1 or 3" }, 400);
+        }
+        const result = await env.DB.prepare(
+          "UPDATE posts SET published = ?, updated_at = datetime('now') WHERE id = ?"
+        ).bind(Number(body.published), id).run();
+        if (!result.meta.changes) return json({ error: "Not found" }, 404);
+        return json({ success: true, published: Number(body.published) });
       }
 
       if (method === "DELETE") {

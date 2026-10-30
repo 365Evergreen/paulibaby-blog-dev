@@ -1,26 +1,36 @@
 import { useCallback, useEffect, useState } from "react";
-import { api, type PostMeta } from "../../api";
+import { Outlet } from "react-router-dom";
+import { fetchPosts, STATUS, type AdminPost } from "./postsApi";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
-import { DashboardOverview } from "./DashboardOverview";
 import styles from "./DashboardPage.module.css";
 
+export interface DashboardContext {
+  posts: AdminPost[] | null;
+  error: string;
+  reload: () => void;
+}
+
 export default function DashboardPage() {
-  const [posts, setPosts] = useState<PostMeta[] | null>(null);
+  const [posts, setPosts] = useState<AdminPost[] | null>(null);
   const [error, setError] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [dark, setDark] = useState(() => localStorage.getItem("admin-theme") === "dark");
 
   const load = useCallback(() => {
-    setError("");
-    setPosts(null);
-    api.admin.posts().then(
-      (r) => setPosts(r.posts),
+    fetchPosts().then(
+      setPosts,
       (e: Error) => setError(e.message || "Failed to load posts"),
     );
   }, []);
 
   useEffect(load, [load]);
+
+  const reload = () => {
+    setError("");
+    setPosts(null);
+    load();
+  };
 
   const toggleTheme = () =>
     setDark((d) => {
@@ -30,11 +40,11 @@ export default function DashboardPage() {
 
   return (
     <div className={`${styles.root} ${dark ? styles.dark : ""}`}>
-      <Header dark={dark} onToggleTheme={toggleTheme} onMenu={() => setMenuOpen(true)} draftCount={posts?.filter((p) => p.status === "draft").length ?? 0} />
+      <Header dark={dark} onToggleTheme={toggleTheme} onMenu={() => setMenuOpen(true)} draftCount={posts?.filter((p) => p.published === STATUS.draft).length ?? 0} />
       <div className={styles.body}>
         <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
         <main className={styles.main}>
-          <DashboardOverview posts={posts} error={error} onRetry={load} />
+          <Outlet context={{ posts, error, reload } satisfies DashboardContext} />
         </main>
       </div>
     </div>

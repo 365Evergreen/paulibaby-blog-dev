@@ -4,7 +4,7 @@ import styles from "./DashboardPage.module.css";
 
 const items = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/admin/post-editor", label: "Posts", icon: FileText },
+  { to: "/dashboard/posts", label: "Posts", icon: FileText },
   { to: "/admin/media-library", label: "Media", icon: Image },
   { to: "/admin", label: "Users", icon: Users },
   { to: "/admin", label: "Settings", icon: Settings },
@@ -30,7 +30,7 @@ export function Sidebar({ open, onClose }: Props) {
               to={to}
               end={end}
               onClick={onClose}
-              className={({ isActive }) => `${styles.navLink} ${isActive && label === "Dashboard" ? styles.navActive : ""}`}
+              className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navActive : ""}`}
             >
               <Icon size={18} /> {label}
             </NavLink>
