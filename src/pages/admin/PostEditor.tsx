@@ -152,3 +152,4 @@ function EditorForm({ id, initial, initialContent }: { id: string; initial: Form
     </>
   );
 }
+;export default PostEditor;
