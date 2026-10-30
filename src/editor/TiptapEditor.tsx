@@ -6,9 +6,22 @@ import { contentExtensions } from "./extensions";
 import proseStyles from "./Prose.module.css";
 import styles from "./TiptapEditor.module.css";
 
-function Btn({ label, active, run }: { label: string; active?: boolean; run: () => void }) {
+function Btn({
+  label,
+  active,
+  run,
+}: {
+  label: string;
+  active?: boolean;
+  run: () => void;
+}) {
   return (
-    <button type="button" className={styles.btn} aria-pressed={active} onClick={run}>
+    <button
+      type="button"
+      className={styles.btn}
+      aria-pressed={active}
+      onClick={run}
+    >
       {label}
     </button>
   );
@@ -21,7 +34,12 @@ interface Props {
   onError: (message: string) => void;
 }
 
-export function TiptapEditor({ initialContent, onChange, onUpload, onError }: Props) {
+export function TiptapEditor({
+  initialContent,
+  onChange,
+  onUpload,
+  onError,
+}: Props) {
   const host = useRef<HTMLDivElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const handlers = useRef({ onChange, onUpload, onError });
@@ -43,7 +61,8 @@ export function TiptapEditor({ initialContent, onChange, onUpload, onError }: Pr
           onError: (m) => handlers.current.onError(m),
         }),
       ],
-      onUpdate: ({ editor }) => handlers.current.onChange(editor.getJSON() as Doc),
+      onUpdate: ({ editor }) =>
+        handlers.current.onChange(editor.getJSON() as Doc),
       onTransaction: () => setTick((n) => n + 1),
     });
     setEditor(instance);
@@ -61,36 +80,105 @@ export function TiptapEditor({ initialContent, onChange, onUpload, onError }: Pr
     <div className={styles.wrapper}>
       {editor && (
         <div className={styles.toolbar} role="toolbar" aria-label="Formatting">
-          <Btn label="B" active={editor.isActive("bold")} run={() => chain().toggleBold().run()} />
-          <Btn label="I" active={editor.isActive("italic")} run={() => chain().toggleItalic().run()} />
-          <Btn label="S" active={editor.isActive("strike")} run={() => chain().toggleStrike().run()} />
-          <Btn label="Code" active={editor.isActive("code")} run={() => chain().toggleCode().run()} />
+          <Btn
+            label="B"
+            active={editor.isActive("bold")}
+            run={() => chain().toggleBold().run()}
+          />
+          <Btn
+            label="I"
+            active={editor.isActive("italic")}
+            run={() => chain().toggleItalic().run()}
+          />
+          <Btn
+            label="S"
+            active={editor.isActive("strike")}
+            run={() => chain().toggleStrike().run()}
+          />
+          <Btn
+            label="Code"
+            active={editor.isActive("code")}
+            run={() => chain().toggleCode().run()}
+          />
           <span className={styles.sep} />
-          <Btn label="H2" active={editor.isActive("heading", { level: 2 })} run={() => chain().toggleHeading({ level: 2 }).run()} />
-          <Btn label="H3" active={editor.isActive("heading", { level: 3 })} run={() => chain().toggleHeading({ level: 3 }).run()} />
-          <Btn label="• List" active={editor.isActive("bulletList")} run={() => chain().toggleBulletList().run()} />
-          <Btn label="1. List" active={editor.isActive("orderedList")} run={() => chain().toggleOrderedList().run()} />
-          <Btn label="Quote" active={editor.isActive("blockquote")} run={() => chain().toggleBlockquote().run()} />
-          <Btn label="Code block" active={editor.isActive("codeBlock")} run={() => chain().toggleCodeBlock().run()} />
+          <Btn
+            label="H2"
+            active={editor.isActive("heading", { level: 2 })}
+            run={() => chain().toggleHeading({ level: 2 }).run()}
+          />
+          <Btn
+            label="H3"
+            active={editor.isActive("heading", { level: 3 })}
+            run={() => chain().toggleHeading({ level: 3 }).run()}
+          />
+          <Btn
+            label="• List"
+            active={editor.isActive("bulletList")}
+            run={() => chain().toggleBulletList().run()}
+          />
+          <Btn
+            label="1. List"
+            active={editor.isActive("orderedList")}
+            run={() => chain().toggleOrderedList().run()}
+          />
+          <Btn
+            label="Quote"
+            active={editor.isActive("blockquote")}
+            run={() => chain().toggleBlockquote().run()}
+          />
+          <Btn
+            label="Code block"
+            active={editor.isActive("codeBlock")}
+            run={() => chain().toggleCodeBlock().run()}
+          />
           <span className={styles.sep} />
           <Btn
             label="Link"
             active={editor.isActive("link")}
             run={() => {
-              const prev = editor.getAttributes("link").href as string | undefined;
+              const prev = editor.getAttributes("link").href as
+                | string
+                | undefined;
               const href = window.prompt("URL", prev ?? "https://");
               if (href === null) return;
-              if (href === "") chain().extendMarkRange("link").unsetLink().run();
+              if (href === "")
+                chain().extendMarkRange("link").unsetLink().run();
               else chain().extendMarkRange("link").setLink({ href }).run();
             }}
           />
           <Btn label="Image" run={() => fileInput.current?.click()} />
-          <Btn label="Callout" active={editor.isActive("callout")} run={() => chain().toggleCallout("info").run()} />
+          <Btn
+            label="Callout"
+            active={editor.isActive("callout")}
+            run={() => chain().toggleCallout("info").run()}
+          />
           {editor.isActive("callout") && (
             <>
-              <Btn label="Info" active={editor.isActive("callout", { variant: "info" })} run={() => chain().updateAttributes("callout", { variant: "info" }).run()} />
-              <Btn label="Warn" active={editor.isActive("callout", { variant: "warning" })} run={() => chain().updateAttributes("callout", { variant: "warning" }).run()} />
-              <Btn label="Success" active={editor.isActive("callout", { variant: "success" })} run={() => chain().updateAttributes("callout", { variant: "success" }).run()} />
+              <Btn
+                label="Info"
+                active={editor.isActive("callout", { variant: "info" })}
+                run={() =>
+                  chain().updateAttributes("callout", { variant: "info" }).run()
+                }
+              />
+              <Btn
+                label="Warn"
+                active={editor.isActive("callout", { variant: "warning" })}
+                run={() =>
+                  chain()
+                    .updateAttributes("callout", { variant: "warning" })
+                    .run()
+                }
+              />
+              <Btn
+                label="Success"
+                active={editor.isActive("callout", { variant: "success" })}
+                run={() =>
+                  chain()
+                    .updateAttributes("callout", { variant: "success" })
+                    .run()
+                }
+              />
             </>
           )}
           <span className={styles.sep} />
@@ -114,4 +202,4 @@ export function TiptapEditor({ initialContent, onChange, onUpload, onError }: Pr
     </div>
   );
 }
-; export default TiptapEditor;
+export default TiptapEditor;

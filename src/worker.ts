@@ -541,6 +541,96 @@ export default {
       }
     }
 
+    // --- Admin: list pages ---
+    if (path === "/api/admin/pages" && method === "GET") {
+      const results = await env.DB.prepare("SELECT * FROM pages ORDER BY created_at DESC").all();
+      return json(results.results);
+    }
+
+    // --- Admin: create page ---
+    if (path === "/api/admin/pages" && method === "POST") {
+      const body = await request.json() as Partial<Post>;
+      const slug = body.slug || slugify(body.title || "untitled");
+      const template = parsePostTemplate(body);
+      if ("error" in template) return json({ error: template.error }, 400);
+      if (template.value.templateId !== null) {
+        const found = await env.DB.prepare("SELECT id FROM templates WHERE id = ?").bind(template.value.templateId).first();
+        if (!found) return json({ error: "Template not found" }, 400);
+      }
+      const existing = await env.DB.prepare("SELECT id FROM pages WHERE slug = ?").bind(slug).first();
+      if (existing) return json({ error: "A page with this slug already exists" }, 409);
+      const result = await env.DB.prepare(
+        "INSERT INTO pages (slug, title, excerpt, body, cover_image, published, template_id, template_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+      ).bind(
+        slug,
+        body.title || "",
+        body.excerpt || "",
+        body.body || "",
+        body.cover_image || null,
+        body.published ? 1 : 0,
+        template.value.templateId,
+        template.value.content,
+      ).run();
+      return json({ id: result.meta.last_row_id as number, slug }, 201);
+    }
+
+    // --- Admin: get / update / delete page by ID ---
+    const adminPageMatch = path.match(/^\/api\/admin\/pages\/(\d+)$/);
+    if (adminPageMatch) {
+      const id = parseInt(adminPageMatch[1]);
+
+      if (method === "GET") {
+        const page = await env.DB.prepare("SELECT * FROM pages WHERE id = ?").bind(id).first<Post>();
+        if (!page) return json({ error: "Not found" }, 404);
+        return json(formatPostTemplate(page));
+      }
+
+      if (method === "PUT") {
+        const body = await request.json() as Partial<Post>;
+        const slug = body.slug || slugify(body.title || "untitled");
+        const template = parsePostTemplate(body);
+        if ("error" in template) return json({ error: template.error }, 400);
+        if (template.value.templateId !== null) {
+          const found = await env.DB.prepare("SELECT id FROM templates WHERE id = ?").bind(template.value.templateId).first();
+          if (!found) return json({ error: "Template not found" }, 400);
+        }
+        const clash = await env.DB.prepare("SELECT id FROM pages WHERE slug = ? AND id != ?").bind(slug, id).first();
+        if (clash) return json({ error: "A page with this slug already exists" }, 409);
+        const result = await env.DB.prepare(
+          "UPDATE pages SET slug = ?, title = ?, excerpt = ?, body = ?, cover_image = ?, published = ?, template_id = ?, template_content = ?, updated_at = datetime('now') WHERE id = ?"
+        ).bind(
+          slug,
+          body.title || "",
+          body.excerpt || "",
+          body.body || "",
+          body.cover_image || null,
+          body.published ? 1 : 0,
+          template.value.templateId,
+          template.value.content,
+          id
+        ).run();
+        if (!result.meta.changes) return json({ error: "Not found" }, 404);
+        return json({ success: true });
+      }
+
+      if (method === "PATCH") {
+        const body = await request.json() as { published?: number };
+        if (![0, 1, 3].includes(Number(body.published))) {
+          return json({ error: "published must be 0, 1 or 3" }, 400);
+        }
+        const result = await env.DB.prepare(
+          "UPDATE pages SET published = ?, updated_at = datetime('now') WHERE id = ?"
+        ).bind(Number(body.published), id).run();
+        if (!result.meta.changes) return json({ error: "Not found" }, 404);
+        return json({ success: true, published: Number(body.published) });
+      }
+
+      if (method === "DELETE") {
+        await env.DB.prepare("DELETE FROM pages WHERE id = ?").bind(id).run();
+        return json({ success: true });
+      }
+    }
+
     // --- Admin: upload image to R2 (legacy) ---
     if (path === "/api/admin/upload" && method === "POST") {
       const formData = await request.formData();

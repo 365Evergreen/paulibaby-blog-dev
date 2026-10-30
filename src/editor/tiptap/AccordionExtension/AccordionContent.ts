@@ -14,3 +14,4 @@ export const AccordionContent = Node.create({
     return ['div', { 'data-type': 'accordion-content', class: styles.accordionContent }, 0]
   },
 })
+export default AccordionContent

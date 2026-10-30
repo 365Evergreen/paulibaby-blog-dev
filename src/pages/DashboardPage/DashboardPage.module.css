@@ -106,7 +106,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
-  background: linear-gradient(135deg, var(--accent), #1a4f85);
+  background:  var(--accent);
   color: #fff;
   border: 0;
 }

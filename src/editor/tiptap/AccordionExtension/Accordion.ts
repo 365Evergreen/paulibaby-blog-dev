@@ -47,3 +47,4 @@ export const Accordion = Node.create({
     }
   },
 })
+export default Accordion
