@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { apiFetch } from "../../lib/auth";
 import { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import TipTapEditor from "../../editor/BlockEditor";
 import { ExternalLink, PanelRight, Plus, Redo2, Undo2 } from "lucide-react";
 import styles from "./PostEditorPage.module.css";
@@ -82,7 +83,7 @@ export default function PostEditorPage() {
   const [newCategoryParent, setNewCategoryParent] = useState<string>("");
   const [addingCategory, setAddingCategory] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+  const navigate = useNavigate();
   useEffect(() => {
     loadCategories();
     if (!isNew) {
@@ -272,6 +273,11 @@ export default function PostEditorPage() {
         topbar={({ editor, blocksOpen, toggleBlocks }) => (
           <header className={styles.topbar}>
             <div className={styles.topbarLeft}>
+              <button className={`${styles.iconBtn} ${styles.iconBtnPrimary}`}
+              onClick={() => navigate("/admin/dashboard")}
+              >
+
+              </button>
               <button
                 className={`${styles.iconBtn} ${styles.iconBtnPrimary}`}
                 onClick={toggleBlocks}
