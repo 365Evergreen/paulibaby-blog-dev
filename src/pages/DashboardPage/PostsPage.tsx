@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertCircle, ArrowDown, ArrowUp, Search } from "lucide-react";
-import { STATUS, fetchCategories, fetchPosts, fmtDate, setPostStatus, toTime, type AdminPost, type Category } from "./postsApi";
+import { STATUS, fetchCategories, fetchPosts, fmtDate, setPostStatus, toTime, type AdminPost, type Category } from "./Posts/postsApi";
 import styles from "./DashboardPage.module.css";
 
 type Tab = "all" | "published" | "draft" | "archived";
