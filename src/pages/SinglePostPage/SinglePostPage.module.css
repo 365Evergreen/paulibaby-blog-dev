@@ -144,3 +144,10 @@
   font-size: 0.85rem;
   margin-bottom: 0.75rem;
 }
+
+@media (max-width: 767px) {
+  .contentContainer { padding: 0 1rem; margin-top: 5.5rem; }
+  .singlePostFullBody blockquote { padding: 0 1rem; font-size: large; }
+  .singlePostCoverFull { height: 200px; }
+  .singlePostFullBody img, .singlePostFullBody iframe, .singlePostFullBody video { max-width: 100%; height: auto; }
+}

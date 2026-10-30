@@ -497,3 +497,7 @@
     height: 36px;
   }
 }
+
+@media (max-width: 767px) {
+  .contentContainer { padding: 0 1rem; }
+}

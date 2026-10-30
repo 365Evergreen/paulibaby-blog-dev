@@ -56,6 +56,7 @@ export const Header: React.FC<SiteHeaderProps> = ({ className = "" }) => {
         }`}
         onClick={toggleMenu}
         aria-label="Toggle navigation menu"
+        aria-expanded={menuOpen}
       >
         <span className={styles.hamburgerBar}></span>
         <span className={styles.hamburgerBar}></span>
@@ -63,7 +64,7 @@ export const Header: React.FC<SiteHeaderProps> = ({ className = "" }) => {
       </button>
 
       {/* 3. Navigation Wrapper Grid Overlay Layer Container */}
-      <div className={`${styles.megaMenu} ${menuOpen ? styles.isMenuOpen : ""}`}>
+      <div className={`${styles.siteNav} ${menuOpen ? styles.isMenuOpen : ""}`}>
         <MegaMenu onItemClick={closeMenu}  />
       </div>
     </header>

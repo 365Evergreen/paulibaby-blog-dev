@@ -7,24 +7,6 @@
     "hasMegaMenu": false
   },
   {
-    "id": 1,
-    "title": "Admin",
-    "href": "/admin",
-    "requiresAuth": true,
-    "hasMegaMenu": true,
-    "columns": [
-      {
-        "heading": "Posts",
-        "links": [
-          {"label": "Dashboard", "href": "/dashboard"},
-          { "label": "Edit posts", "href": "/admin/post/:id" },
-          { "label": "Media library", "href": "/admin/media-library" },
-          { "label": "Media admin", "href": "/admin/media-admin" }
-        ]
-      }
-    ]
-  },
-  {
     "id": 2,
     "title": "Posts",
     "href": "/archive",
@@ -34,8 +16,14 @@
       {
         "heading": "Categories",
         "links": [
-          { "label": "All", "href": "/archive" },
-          { "label": "Music ", "href": "/admin/post/create" }
+          {
+            "label": "All",
+            "href": "/archive"
+          },
+          {
+            "label": "Music ",
+            "href": "/admin/post/create"
+          }
         ]
       }
     ]
@@ -50,19 +38,43 @@
       {
         "heading": "Posts",
         "links": [
-          { "label": "Dashboard", "href": "admin/dashboard" },
-          { "label": "Edit posts", "href": "/admin/post/:id" },
-          { "label": "Media library", "href": "/admin/media-library" },
-          { "label": "Media admin", "href": "/admin/media-admin" }
+          {
+            "label": "Dashboard",
+            "href": "admin/dashboard"
+          },
+          {
+            "label": "Edit posts",
+            "href": "/admin/post/:id"
+          },
+          {
+            "label": "Media library",
+            "href": "/admin/media-library"
+          },
+          {
+            "label": "Media admin",
+            "href": "/admin/media-admin"
+          }
         ]
       },
       {
         "heading": "Pages",
         "links": [
-          { "label": "Dashboard", "href": "admin/dashboard" },
-          { "label": "Edit posts", "href": "/admin/post/:id" },
-          { "label": "Media library", "href": "/admin/media-library" },
-          { "label": "Media admin", "href": "/admin/media-admin" }
+          {
+            "label": "Dashboard",
+            "href": "admin/dashboard"
+          },
+          {
+            "label": "Edit posts",
+            "href": "/admin/post/:id"
+          },
+          {
+            "label": "Media library",
+            "href": "/admin/media-library"
+          },
+          {
+            "label": "Media admin",
+            "href": "/admin/media-admin"
+          }
         ]
       }
     ]

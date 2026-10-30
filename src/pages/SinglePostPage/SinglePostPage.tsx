@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { renderMarkdown } from "../../lib/renderMarkdown";
+import RelatedPosts from "../../components/RelatedPosts/RelatedPosts";
 import styles from './SinglePostPage.module.css';
 
 type Post = {
@@ -11,6 +12,7 @@ type Post = {
   body: string;
   cover_image: string | null;
   created_at: string;
+  category_slug?: string | null;
 };
 
 export default function SinglePostPage() {
@@ -77,6 +79,10 @@ export default function SinglePostPage() {
           dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }}
         />
       </article>
+
+      {post.category_slug && (
+        <RelatedPosts category={post.category_slug} currentSlug={post.slug} />
+      )}
 
       <div className="back-link">
         <Link to="/">← Back to blog</Link>
