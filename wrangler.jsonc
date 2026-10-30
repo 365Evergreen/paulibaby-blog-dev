@@ -15,14 +15,7 @@
   },
   "upload_source_maps": true,
 
-  // Cloudflare Access: set these to your Zero Trust team domain, the Access
-  // application's AUD tag, and the emails allowed in each role.
-  "vars": {
-    "TEAM_DOMAIN": "365evergreen.com",
-    "POLICY_AUD": "9db81e75d722c01bdef8a03972604c47f651d39e6216657516c65680be561b86",
-    "ADMIN_EMAILS": "paul@365evergreen.com",
-    "EDITOR_EMAILS": "paul@365evergreen.com"
-  },
+
   
   // Default Environment (Local / Development)
   "d1_databases": [
