@@ -1,4 +1,5 @@
-import { NavLink, Link, Outlet, useLocation } from "react-router";
+import { Outlet, useLocation } from "react-router";
+import { Header } from "./Header";
 
 export function Layout() {
   const { pathname } = useLocation();
@@ -8,19 +9,7 @@ export function Layout() {
       <a className="skip-link" href="#main">
         Skip to content
       </a>
-      <header className="site-header">
-        <div className="site-header__bar">
-          <Link to="/" className="site-brand">
-            Paulibaby
-          </Link>
-          <nav className="site-nav" aria-label="Primary">
-            <NavLink to="/" end>
-              Posts
-            </NavLink>
-            <NavLink to="/admin">Admin</NavLink>
-          </nav>
-        </div>
-      </header>
+      <Header />
       <main id="main" className={`site-main${wide ? " site-main--wide" : ""}`}>
         <Outlet />
       </main>

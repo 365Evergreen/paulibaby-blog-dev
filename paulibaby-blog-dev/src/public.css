@@ -76,48 +76,6 @@ a {
   transform: none;
 }
 
-/* Header: brand above nav on tiny screens, side by side once there is room. */
-.site-header {
-  border-bottom: 1px solid var(--border);
-}
-
-.site-header__bar {
-  width: 100%;
-  max-width: var(--measure-wide);
-  margin: 0 auto;
-  padding: 0.75rem var(--gutter);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem 1rem;
-}
-
-.site-brand {
-  font-weight: 700;
-  font-size: 1.25rem;
-  color: inherit;
-  text-decoration: none;
-}
-
-.site-nav {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.site-nav a {
-  color: var(--muted);
-  text-decoration: none;
-  padding: 0.5rem 0.75rem; /* comfortable touch target */
-  border-radius: 8px;
-}
-
-.site-nav a:hover,
-.site-nav a[aria-current="page"] {
-  color: var(--fg);
-  background: var(--surface);
-}
-
 .site-main {
   flex: 1;
   width: 100%;
