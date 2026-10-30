@@ -1,0 +1,62 @@
+.wrapper {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 1;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.btn {
+  font: inherit;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: var(--surface);
+}
+
+.btn[aria-pressed="true"] {
+  background: var(--accent);
+  color: #fff;
+}
+
+.sep {
+  width: 1px;
+  background: var(--border);
+  margin: 0 0.25rem;
+}
+
+.content {
+  padding: 1rem;
+  min-height: 20rem;
+}
+
+.content :global(.ProseMirror) {
+  outline: none;
+  min-height: 18rem;
+}
+
+.content :global(.ProseMirror img.ProseMirror-selectednode) {
+  outline: 2px solid var(--accent);
+}
+
+.hidden {
+  display: none;
+}

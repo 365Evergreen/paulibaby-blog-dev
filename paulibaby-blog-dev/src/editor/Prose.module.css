@@ -1,0 +1,69 @@
+.prose {
+  line-height: 1.7;
+  font-size: 1.0625rem;
+  overflow-wrap: anywhere;
+}
+
+.prose > * + * {
+  margin-top: 1em;
+}
+
+.prose h1,
+.prose h2,
+.prose h3 {
+  line-height: 1.25;
+  margin-top: 1.6em;
+}
+
+.prose a {
+  color: var(--accent);
+}
+
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+}
+
+.prose blockquote {
+  margin-left: 0;
+  padding-left: 1rem;
+  border-left: 3px solid var(--border);
+  color: var(--muted);
+}
+
+.prose pre {
+  background: var(--surface);
+  padding: 1rem;
+  border-radius: var(--radius);
+  overflow-x: auto;
+}
+
+.prose code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.5rem;
+}
+
+.prose [data-callout] {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  border-left: 4px solid var(--callout-color, var(--accent));
+  background: color-mix(in srgb, var(--callout-color, var(--accent)) 12%, transparent);
+}
+
+.prose [data-callout][data-variant="warning"] {
+  --callout-color: #d97706;
+}
+
+.prose [data-callout][data-variant="success"] {
+  --callout-color: #16a34a;
+}
+
+.prose [data-callout] > * + * {
+  margin-top: 0.5em;
+}
