@@ -646,16 +646,42 @@
 .editorBody { display: flex; flex: 1; min-height: 0; align-items: flex-start; }
 .editorBody > :first-child { flex: 1; min-width: 0; }
 @media (min-width: 900px) {
-  .editorBody .drawerOverlay { display: none; }
-  .editorBody .drawer {
+  .drawerOverlay { display: none; }
+  .drawer {
     position: sticky;
-    top: 0;
+    top: 56px;
     flex-shrink: 0;
     width: 320px;
-    height: 100vh;
+    height: calc(100vh - 56px);
     z-index: 5;
     animation: none;
     border-left: 1px solid #e8e8e8;
     box-shadow: none;
   }
 }
+
+/* Editor top bar (WordPress-style) */
+.editorBody > :first-child { display: flex; flex-direction: column; }
+.topbar { gap: 1rem; height: 56px; box-sizing: border-box; padding: 0 1rem; }
+.topbarTitle {
+  flex: 1; min-width: 0; max-width: 560px; margin: 0 auto;
+  padding: 0.45rem 0.75rem; border: 1px solid transparent; border-radius: 6px;
+  background: #f0f0f1; font: inherit; font-size: 0.95rem; text-align: center; color: inherit;
+}
+.topbarTitle:focus { outline: none; border-color: var(--accent); background: #fff; }
+.iconBtn {
+  display: inline-grid; place-items: center; width: 36px; height: 36px;
+  border: 0; border-radius: 4px; background: transparent; color: #1e1e1e; cursor: pointer;
+}
+.iconBtn:hover:not(:disabled) { background: #f0f0f1; }
+.iconBtn:disabled { opacity: 0.35; cursor: default; }
+.iconBtnPrimary { background: #1e1e1e; color: #fff; }
+.iconBtnPrimary:hover:not(:disabled) { background: #3a3a3a; }
+.iconBtnActive { background: #1e1e1e; color: #fff; }
+@media (max-width: 899px) {
+  .topbarTitle { display: none; }
+  .topbarRight { margin-left: auto; }
+}
+.editorBody { padding: 0; max-width: none; }
+.editorBody > :first-child { position: relative; }
+.topbar { position: sticky; top: 0; z-index: 100; }

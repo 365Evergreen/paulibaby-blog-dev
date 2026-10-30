@@ -7,7 +7,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { createLowlight, common } from "lowlight";
 import {
   ChevronsDownUp, CirclePlay, Code, Columns2, Columns3, Globe, Heading2, Heading3, Image as ImageIcon, Info,
-  List, ListOrdered, Minus, Music, PanelLeftClose, PanelLeftOpen, Pilcrow, Quote, Video as VideoIcon,
+  List, ListOrdered, Minus, Music, Pilcrow, Quote, Video as VideoIcon,
   type LucideIcon,
 } from "lucide-react";
 import { Callout } from "./Callout";
@@ -80,11 +80,14 @@ interface Props {
   onChange: (html: string) => void;
   onUpload?: (file: File) => Promise<string | null>;
   onError?: (message: string) => void;
-  /** Rendered at the top of the canvas (e.g. the post title input). */
+  /** Rendered across the top; receives the editor and drawer controls. */
+  topbar?: (ctx: { editor: Editor | null; blocksOpen: boolean; toggleBlocks: () => void }) => ReactNode;
+  /** Docked to the right of the canvas (e.g. the settings panel). */
+  aside?: ReactNode;
   children?: ReactNode;
 }
 
-export default function BlockEditor({ value, onChange, onUpload, onError, children }: Props) {
+export default function BlockEditor({ value, onChange, onUpload, onError, topbar, aside, children }: Props) {
   const [open, setOpen] = useState(() => window.matchMedia("(min-width: 900px)").matches);
   const fileInput = useRef<HTMLInputElement>(null);
   const onChangeRef = useRef(onChange);
@@ -130,6 +133,8 @@ export default function BlockEditor({ value, onChange, onUpload, onError, childr
   }
 
   return (
+    <div className={styles.outer}>
+    {topbar?.({ editor, blocksOpen: open, toggleBlocks: () => setOpen((o) => !o) })}
     <div className={styles.shell}>
       <aside className={`${styles.drawer} ${open ? styles.drawerOpen : ""}`} aria-label="Block inserter" aria-hidden={!open}>
         <div className={styles.drawerHead}>Blocks</div>
@@ -153,9 +158,6 @@ export default function BlockEditor({ value, onChange, onUpload, onError, childr
           ))}
         </div>
       </aside>
-      <button type="button" className={styles.toggle} onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={open ? "Close block drawer" : "Open block drawer"}>
-        {open ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
-      </button>
       <input ref={fileInput} type="file" accept="image/*" hidden onChange={(e) => { void onFile(e.target.files); e.target.value = ""; }} />
       <div className={styles.canvas}>
         <div className={styles.page}>
@@ -163,6 +165,8 @@ export default function BlockEditor({ value, onChange, onUpload, onError, childr
           <EditorContent editor={editor} className={proseStyles.prose} />
         </div>
       </div>
+      {aside}
+    </div>
     </div>
   );
 }
