@@ -178,7 +178,8 @@ export default function PostEditorPage() {
         setEditing((cur) => ({ ...cur, published }));
         setMessage(published ? "Published!" : "Draft saved.");
       } else {
-        setMessage("Error saving post.");
+        const err = await res.json().catch(() => ({}));
+        setMessage(err.error || "Error saving post.");
       }
     } catch {
       setMessage("Network error.");

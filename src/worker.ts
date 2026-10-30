@@ -464,6 +464,8 @@ export default {
         const found = await env.DB.prepare("SELECT id FROM templates WHERE id = ?").bind(template.value.templateId).first();
         if (!found) return json({ error: "Template not found" }, 400);
       }
+      const existing = await env.DB.prepare("SELECT id FROM posts WHERE slug = ?").bind(slug).first();
+      if (existing) return json({ error: "A post with this slug already exists" }, 409);
       const result = await env.DB.prepare(
         "INSERT INTO posts (slug, title, excerpt, body, cover_image, published, template_id, template_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
       ).bind(
@@ -506,6 +508,8 @@ export default {
           const found = await env.DB.prepare("SELECT id FROM templates WHERE id = ?").bind(template.value.templateId).first();
           if (!found) return json({ error: "Template not found" }, 400);
         }
+        const clash = await env.DB.prepare("SELECT id FROM posts WHERE slug = ? AND id != ?").bind(slug, id).first();
+        if (clash) return json({ error: "A post with this slug already exists" }, 409);
         await env.DB.prepare(
           "UPDATE posts SET slug = ?, title = ?, excerpt = ?, body = ?, cover_image = ?, published = ?, template_id = ?, template_content = ?, updated_at = datetime('now') WHERE id = ?"
         ).bind(
