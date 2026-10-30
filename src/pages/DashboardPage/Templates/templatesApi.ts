@@ -1,4 +1,5 @@
-import { apiFetch } from "../../lib/auth";
+import { apiFetch } from "../../../lib/auth";
+import type { TemplateComponent } from "./componentRegistry";
 
 export type TemplateType = "post" | "page";
 export type TemplateLayout = "article" | "feature" | "basic";
@@ -7,6 +8,7 @@ export interface TemplateSchema {
   version: 1;
   layout: TemplateLayout;
   sections: unknown[];
+  components?: TemplateComponent[];
 }
 
 export interface Template {
@@ -48,3 +50,14 @@ export const updateTemplate = async (id: number, input: TemplateInput): Promise<
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   }))).json();
+
+export function normalizeTemplate(template: Template): Template {
+  return {
+    ...template,
+    schema: {
+      ...template.schema,
+      sections: template.schema.sections ?? [],
+      components: template.schema.components ?? [],
+    },
+  };
+}

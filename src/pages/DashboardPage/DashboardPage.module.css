@@ -667,6 +667,70 @@
   gap: 8px;
   margin-top: 18px;
 }
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 8px;
+  color: var(--accent);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+.componentEditorGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 20px;
+}
+.componentList,
+.componentFields {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+.componentItem {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.componentItemSelected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.componentSelect {
+  display: grid;
+  flex: 1;
+  gap: 3px;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+.componentSelect span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.componentActions {
+  display: flex;
+  align-self: flex-start;
+}
+.componentLibrary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.componentLibrary h3 {
+  width: 100%;
+  margin: 0;
+  font-size: 0.9rem;
+}
 .themeGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -833,6 +897,9 @@
     grid-template-columns: 1fr;
   }
   .templateEditor {
+    grid-template-columns: 1fr;
+  }
+  .componentEditorGrid {
     grid-template-columns: 1fr;
   }
 }

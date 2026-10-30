@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, Search } from "lucide-react";
 import { fetchUsers, type AdminUser } from "./usersApi";
-import { fmtDate } from "./postsApi";
-import { NewUserModal } from "./NewUserModal";
-import styles from "./DashboardPage.module.css";
+import { fmtDate } from "../postsApi";
+import { NewUserModal } from "../NewUserModal";
+import styles from "../DashboardPage.module.css";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<AdminUser[] | null>(null);

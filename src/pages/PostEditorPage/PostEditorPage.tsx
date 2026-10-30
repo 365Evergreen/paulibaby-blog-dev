@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import TipTapEditor from "../../editor/BlockEditor";
 import { ExternalLink, PanelRight, Plus, Redo2, Undo2 } from "lucide-react";
+import { componentRegistry } from "../DashboardPage/Templates/componentRegistry";
+import { fetchTemplates, normalizeTemplate, type Template } from "../DashboardPage/Templates/templatesApi";
 import styles from "./PostEditorPage.module.css";
 
 type Post = {
@@ -15,6 +17,8 @@ type Post = {
   cover_image: string | null;
   published: number | boolean;
   category_ids: number[];
+  template_id: number | null;
+  template_content: Record<string, Record<string, string>>;
   created_at?: string;
   updated_at?: string;
 };
@@ -73,12 +77,15 @@ export default function PostEditorPage() {
     cover_image: null,
     published: false,
     category_ids: [],
+    template_id: null,
+    template_content: {},
   });
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(() => window.matchMedia("(min-width: 900px)").matches);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryParent, setNewCategoryParent] = useState<string>("");
   const [addingCategory, setAddingCategory] = useState(false);
@@ -86,10 +93,19 @@ export default function PostEditorPage() {
   const navigate = useNavigate();
   useEffect(() => {
     loadCategories();
+    loadTemplates();
     if (!isNew) {
       loadPost(id!);
     }
   }, [id]);
+
+  async function loadTemplates() {
+    try {
+      setTemplates((await fetchTemplates()).map(normalizeTemplate).filter((template) => template.template_type === "post"));
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to load templates.");
+    }
+  }
 
   async function loadCategories() {
     const res = await apiFetch("/api/admin/categories");
@@ -116,6 +132,8 @@ export default function PostEditorPage() {
         ...data,
         published: Boolean(data.published),
         category_ids: data.category_ids || [],
+        template_id: data.template_id ?? null,
+        template_content: typeof data.template_content === "object" && data.template_content ? data.template_content : {},
       });
     }
     setLoading(false);
@@ -251,6 +269,29 @@ export default function PostEditorPage() {
     });
   }
 
+  function chooseTemplate(templateId: string) {
+    const template = templates.find((item) => item.id === Number(templateId));
+    if (!template) {
+      setEditing((current) => ({ ...current, template_id: null, template_content: {} }));
+      return;
+    }
+    const content = Object.fromEntries((template.schema.components ?? []).map((component) => [
+      component.id,
+      { ...component.props, ...(editing.template_content[component.id] ?? {}) },
+    ]));
+    setEditing((current) => ({ ...current, template_id: template.id, template_content: content }));
+  }
+
+  function updateTemplateContent(componentId: string, key: string, value: string) {
+    setEditing((current) => ({
+      ...current,
+      template_content: {
+        ...current.template_content,
+        [componentId]: { ...(current.template_content[componentId] ?? {}), [key]: value },
+      },
+    }));
+  }
+
  if (loading) {
     return (
       <div className={styles.editorPage}>
@@ -260,6 +301,7 @@ export default function PostEditorPage() {
   }
 
   const categoryOptions = flattenCategoryTree(buildCategoryTree(categories));
+  const selectedTemplate = templates.find((template) => template.id === editing.template_id);
     return (
 
     <div className={styles.editorPage}>
@@ -431,6 +473,34 @@ export default function PostEditorPage() {
                 </div>
                 <small>Select one or more categories for this post</small>
               </div>
+
+              <div className={styles.formGroup}>
+                <label>Template</label>
+                <select className={styles.formInput} value={editing.template_id ?? ""} onChange={(event) => chooseTemplate(event.target.value)}>
+                  <option value="">No template</option>
+                  {templates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}
+                </select>
+                <small>Select a template to configure its components for this post.</small>
+              </div>
+
+              {selectedTemplate?.schema.components?.map((component) => {
+                const definition = componentRegistry[component.type];
+                const content = editing.template_content[component.id] ?? component.props;
+                return (
+                  <div className={styles.formGroup} key={component.id}>
+                    <label>{definition.name}</label>
+                    <small>{definition.description}</small>
+                    {definition.fields.map((field) => (
+                      <label key={field.key}>
+                        {field.label}
+                        {field.multiline
+                          ? <textarea className={styles.formTextarea} rows={3} value={content[field.key] ?? ""} onChange={(event) => updateTemplateContent(component.id, field.key, event.target.value)} />
+                          : <input className={styles.formInput} value={content[field.key] ?? ""} onChange={(event) => updateTemplateContent(component.id, field.key, event.target.value)} />}
+                      </label>
+                    ))}
+                  </div>
+                );
+              })}
 
               {/* Inline category creator */}
               <div className={styles.formGroup}>

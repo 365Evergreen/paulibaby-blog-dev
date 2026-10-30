@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@sereneinserenade/tiptap-search-and-replace':
+        specifier: ^0.1.1
+        version: 0.1.1(@tiptap/core@3.32.1(@tiptap/pm@3.32.1))(@tiptap/pm@3.32.1)
       '@tiptap/core':
         specifier: ^3.32.1
         version: 3.32.1(@tiptap/pm@3.32.1)
@@ -810,6 +813,12 @@ packages:
 
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
+
+  '@sereneinserenade/tiptap-search-and-replace@0.1.1':
+    resolution: {integrity: sha512-lVYuCYj8ORUCpv9WD7mmcKGQez/QaGUyCoJReH8Kn8hQo8dJEETo3sC3l7QrsYokoV8VNS42rBh0vj7qbgDg1Q==}
+    peerDependencies:
+      '@tiptap/core': ^2.x.x
+      '@tiptap/pm': ^2.x.x
 
   '@sindresorhus/is@7.2.0':
     resolution: {integrity: sha512-P1Cz1dWaFfR4IR+U13mqqiGsLFf1KbayybWwdd2vfctdV6hDpUkgCY0nKOLLTMSoRd/jJNjtbqzf13K8DCCXQw==}
@@ -2412,6 +2421,11 @@ snapshots:
     optional: true
 
   '@rolldown/pluginutils@1.0.1': {}
+
+  '@sereneinserenade/tiptap-search-and-replace@0.1.1(@tiptap/core@3.32.1(@tiptap/pm@3.32.1))(@tiptap/pm@3.32.1)':
+    dependencies:
+      '@tiptap/core': 3.32.1(@tiptap/pm@3.32.1)
+      '@tiptap/pm': 3.32.1
 
   '@sindresorhus/is@7.2.0': {}
 
