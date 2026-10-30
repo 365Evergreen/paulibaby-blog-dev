@@ -101,8 +101,8 @@ function Skeleton() {
   )
 }
 
-export default function LatestPosts() {
-  const { posts, loading, error } = usePosts()
+export default function LatestPosts({ category }: { category?: string }) {
+  const { posts, loading, error } = usePosts(undefined, 50, category)
   const [visible, setVisible] = useState(INITIAL)
 
   if (loading) return <Skeleton />

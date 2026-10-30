@@ -26,10 +26,11 @@ export function formatDate(iso: string): string {
   return `${dd}/${mm}/${yy}`
 }
 
-async function fetchPosts(type?: PostType, limit = 50): Promise<Post[]> {
+async function fetchPosts(type?: PostType, limit = 50, category?: string): Promise<Post[]> {
   const params = new URLSearchParams()
   if (type) params.set("type", type)
   params.set("limit", String(limit))
+  if (category) params.set("category", category)
 
   // Try the Cloudflare Worker first (works in production)
   try {
@@ -62,7 +63,7 @@ async function fetchPost(slug: string): Promise<PostDetail | null> {
   return null
 }
 
-export function usePosts(type?: PostType, limit = 50) {
+export function usePosts(type?: PostType, limit = 50, category?: string) {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -70,10 +71,10 @@ export function usePosts(type?: PostType, limit = 50) {
   useEffect(() => {
     setLoading(true)
     setError(null)
-    fetchPosts(type, limit)
+    fetchPosts(type, limit, category)
       .then((data) => { setPosts(data); setLoading(false) })
       .catch((e: Error) => { setError(e.message); setLoading(false) })
-  }, [type, limit])
+  }, [type, limit, category])
 
   return { posts, loading, error }
 }
