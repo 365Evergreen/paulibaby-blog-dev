@@ -1,7 +1,9 @@
 import { ArrowDown, ArrowLeft, ArrowUp, Plus, Save, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { componentDefinitions, componentRegistry, createTemplateComponent, type ComponentType, type TemplateComponent } from "./componentRegistry";
+import FieldEditor from "../../../components/FieldEditor/FieldEditor";
+import { COMPONENT_GROUP_LABELS, type ComponentGroup } from "../../../components/library/componentTypes";
+import { componentDefinitions, componentRegistry, createTemplateComponent, resolveProps, type TemplateComponent } from "./componentRegistry";
 import { createTemplate, fetchTemplates, normalizeTemplate, type TemplateInput, type TemplateLayout, type TemplateType, updateTemplate } from "./templatesApi";
 import styles from "../DashboardPage.module.css";
 
@@ -48,7 +50,7 @@ export default function TemplateEditorPage() {
     setDraft((current) => ({ ...current, schema: { ...current.schema, components: updater(current.schema.components ?? []) } }));
   };
 
-  const addComponent = (type: ComponentType) => {
+  const addComponent = (type: string) => {
     const component = createTemplateComponent(type);
     updateComponents((items) => [...items, component]);
     setSelectedId(component.id);
@@ -70,7 +72,7 @@ export default function TemplateEditorPage() {
     if (selectedId === idToRemove) setSelectedId(null);
   };
 
-  const updateProp = (componentId: string, key: string, value: string) => {
+  const updateProp = (componentId: string, key: string, value: unknown) => {
     updateComponents((items) => items.map((component) =>
       component.id === componentId ? { ...component, props: { ...component.props, [key]: value } } : component,
     ));
@@ -125,6 +127,7 @@ export default function TemplateEditorPage() {
           <div className={styles.componentList}>
             {components.map((component, index) => {
               const definition = componentRegistry[component.type];
+              if (!definition) return null;
               return (
                 <div key={component.id} className={`${styles.componentItem} ${selectedId === component.id ? styles.componentItemSelected : ""}`}>
                   <button className={styles.componentSelect} onClick={() => setSelectedId(component.id)}><strong>{definition.name}</strong><span>{definition.description}</span></button>
@@ -140,21 +143,25 @@ export default function TemplateEditorPage() {
           </div>
           <div className={styles.componentLibrary}>
             <h3>Add component</h3>
-            {componentDefinitions.map((definition) => <button key={definition.type} className={styles.btn} onClick={() => addComponent(definition.type)}><Plus size={15} /> {definition.name}</button>)}
+            {(Object.keys(COMPONENT_GROUP_LABELS) as ComponentGroup[]).map((group) => (
+              <div key={group}>
+                <h4>{COMPONENT_GROUP_LABELS[group]}</h4>
+                {componentDefinitions.filter((definition) => definition.group === group).map((definition) => <button key={definition.type} className={styles.btn} onClick={() => addComponent(definition.type)}><Plus size={15} /> {definition.name}</button>)}
+              </div>
+            ))}
           </div>
         </section>
 
         <section className={styles.card}>
           <h2>Component settings</h2>
-          {selected ? (
+          {selected && componentRegistry[selected.type] ? (
             <div className={styles.componentFields}>
               <p className={styles.muted}>{componentRegistry[selected.type].description}</p>
-              {componentRegistry[selected.type].fields.map((field) => (
-                <label key={field.key} className={styles.field}>
-                  {field.label}
-                  {field.multiline ? <textarea className={styles.input} rows={4} value={selected.props[field.key] ?? ""} placeholder={field.placeholder} onChange={(event) => updateProp(selected.id, field.key, event.target.value)} /> : <input className={styles.input} value={selected.props[field.key] ?? ""} placeholder={field.placeholder} onChange={(event) => updateProp(selected.id, field.key, event.target.value)} />}
-                </label>
-              ))}
+              <FieldEditor
+                fields={componentRegistry[selected.type].fields}
+                values={resolveProps(selected.type, selected.props)}
+                onChange={(key, value) => updateProp(selected.id, key, value)}
+              />
             </div>
           ) : <p className={styles.muted}>Select a component to configure it.</p>}
         </section>

@@ -1,0 +1,27 @@
+.cta {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  background: #111;
+  color: #fff;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.description {
+  max-width: 36rem;
+  margin: 0.75rem auto 0;
+  opacity: 0.85;
+}
+
+.button {
+  display: inline-block;
+  margin-top: 1.25rem;
+  padding: 0.7rem 1.4rem;
+  border-radius: 6px;
+  background: #fff;
+  color: #111;
+  text-decoration: none;
+}

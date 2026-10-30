@@ -1,10 +1,11 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react-hooks/exhaustive-deps, react-hooks/immutability */
 import { apiFetch } from "../../lib/auth";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import TipTapEditor from "../../editor/BlockEditor";
 import { ExternalLink, PanelRight, Plus, Redo2, Undo2 } from "lucide-react";
-import { componentRegistry } from "../DashboardPage/Templates/componentRegistry";
+import FieldEditor from "../../components/FieldEditor/FieldEditor";
+import { componentRegistry, resolveProps } from "../DashboardPage/Templates/componentRegistry";
 import { fetchTemplates, normalizeTemplate, type Template } from "../DashboardPage/Templates/templatesApi";
 import styles from "./PageEditorPage.module.css";
 
@@ -17,7 +18,7 @@ type Page = {
   cover_image: string | null;
   published: number | boolean;
   template_id: number | null;
-  template_content: Record<string, Record<string, string>>;
+  template_content: Record<string, Record<string, unknown>>;
   created_at?: string;
   updated_at?: string;
 };
@@ -173,12 +174,12 @@ export default function PageEditorPage() {
     }
     const content = Object.fromEntries((template.schema.components ?? []).map((component) => [
       component.id,
-      { ...component.props, ...(editing.template_content[component.id] ?? {}) },
+      resolveProps(component.type, { ...component.props, ...(editing.template_content[component.id] ?? {}) }),
     ]));
     setEditing((current) => ({ ...current, template_id: template.id, template_content: content }));
   }
 
-  function updateTemplateContent(componentId: string, key: string, value: string) {
+  function updateTemplateContent(componentId: string, key: string, value: unknown) {
     setEditing((current) => ({
       ...current,
       template_content: {
@@ -359,19 +360,13 @@ export default function PageEditorPage() {
 
               {selectedTemplate?.schema.components?.map((component) => {
                 const definition = componentRegistry[component.type];
-                const content = editing.template_content[component.id] ?? component.props;
+                if (!definition) return null;
+                const content = resolveProps(component.type, { ...component.props, ...(editing.template_content[component.id] ?? {}) });
                 return (
                   <div className={styles.formGroup} key={component.id}>
                     <label>{definition.name}</label>
                     <small>{definition.description}</small>
-                    {definition.fields.map((field) => (
-                      <label key={field.key}>
-                        {field.label}
-                        {field.multiline
-                          ? <textarea className={styles.formTextarea} rows={3} value={content[field.key] ?? ""} onChange={(event) => updateTemplateContent(component.id, field.key, event.target.value)} />
-                          : <input className={styles.formInput} value={content[field.key] ?? ""} onChange={(event) => updateTemplateContent(component.id, field.key, event.target.value)} />}
-                      </label>
-                    ))}
+                    <FieldEditor fields={definition.fields} values={content} onChange={(key, value) => updateTemplateContent(component.id, key, value)} />
                   </div>
                 );
               })}

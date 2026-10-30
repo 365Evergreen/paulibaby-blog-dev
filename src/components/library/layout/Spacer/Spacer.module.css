@@ -1,0 +1,13 @@
+.spacer {
+  display: flex;
+  align-items: center;
+}
+
+.divider {
+  width: 100%;
+  max-width: 44rem;
+  margin: 0 auto;
+  border: 0;
+  border-top: 1px solid currentColor;
+  opacity: 0.2;
+}
