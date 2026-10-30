@@ -114,3 +114,4 @@ export function TiptapEditor({ initialContent, onChange, onUpload, onError }: Pr
     </div>
   );
 }
+; export default TiptapEditor;
