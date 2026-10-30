@@ -3,7 +3,7 @@ import { apiFetch } from "../../lib/auth";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import BlockEditor from "../../editor/BlockEditor";
-import { ExternalLink, PanelRight, Plus, Redo2, Undo2 } from "lucide-react";
+import {ArrowRight, ExternalLink, PanelRight, Plus, Redo2, Undo2 } from "lucide-react";
 import FieldEditor from "../../components/FieldEditor/FieldEditor";
 import { componentRegistry, resolveProps } from "../DashboardPage/Templates/componentRegistry";
 import { fetchTemplates, normalizeTemplate, type Template } from "../DashboardPage/Templates/templatesApi";
@@ -213,8 +213,7 @@ export default function PageEditorPage() {
             <div className={styles.topbarLeft}>
               <button className={`${styles.iconBtn} ${styles.iconBtnPrimary}`}
               onClick={() => navigate("/admin/dashboard")}
-              >
-
+              ><ArrowRight size={18} />
               </button>
               <button
                 className={`${styles.iconBtn} ${blocksOpen ? styles.iconBtnActive : ""}`}

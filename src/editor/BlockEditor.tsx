@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { Callout } from "./Callout";
 import { Video } from "./tiptap/VideoExtension";
-import { Audio } from "./tiptap/AudioExtension";
+import { Audio } from "./tiptap/AudioExtension";import ImageResize from "tiptap-extension-resize-image";
 import { YoutubeEmbed as YouTube } from "./tiptap/YouTubeExtension/YouTubeExtension";
 import { Iframe } from "./tiptap/iFrameExtension/iFrameExtension";
 import { Accordion } from "./tiptap/AccordionExtension/Accordion";
@@ -215,6 +215,13 @@ export default function BlockEditor({
       }),
       CodeBlock.configure({ lowlight }),
       Image,
+      ImageResize.configure({
+        inline: true,
+        allowBase64: true,
+        HTMLAttributes: {
+          class: "resizable-image",
+        },
+      }),
       Callout,
       Video,
       Audio,
