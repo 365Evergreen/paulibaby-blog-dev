@@ -641,3 +641,21 @@
     flex: 1 1 100%;
   }
 }
+
+/* Settings panel docks to the right of the canvas (WordPress-style) */
+.editorBody { display: flex; flex: 1; min-height: 0; align-items: flex-start; }
+.editorBody > :first-child { flex: 1; min-width: 0; }
+@media (min-width: 900px) {
+  .editorBody .drawerOverlay { display: none; }
+  .editorBody .drawer {
+    position: sticky;
+    top: 0;
+    flex-shrink: 0;
+    width: 320px;
+    height: 100vh;
+    z-index: 5;
+    animation: none;
+    border-left: 1px solid #e8e8e8;
+    box-shadow: none;
+  }
+}
