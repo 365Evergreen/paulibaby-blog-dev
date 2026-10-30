@@ -1,0 +1,15 @@
+.richText {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  line-height: 1.7;
+}
+
+.heading {
+  margin: 0 0 1rem;
+}
+
+.richText p {
+  margin: 0 0 1rem;
+  white-space: pre-line;
+}

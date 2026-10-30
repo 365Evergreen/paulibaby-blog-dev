@@ -1,0 +1,22 @@
+.callout {
+  max-width: 44rem;
+  margin: 1.5rem auto;
+  padding: 1rem 1.25rem;
+  border-left: 4px solid;
+  border-radius: 6px;
+}
+
+.title {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.body {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.info { background: #eff6ff; border-color: #3b82f6; color: #1e3a8a; }
+.success { background: #f0fdf4; border-color: #22c55e; color: #14532d; }
+.warning { background: #fffbeb; border-color: #f59e0b; color: #78350f; }
+.danger { background: #fef2f2; border-color: #ef4444; color: #7f1d1d; }
