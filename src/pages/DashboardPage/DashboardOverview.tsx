@@ -1,19 +1,16 @@
-import { Link } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import { CheckCircle2, FileText, FilePen, AlertCircle } from "lucide-react";
-import { formatDate, type PostMeta } from "../../api";
+import { STATUS, fmtDate, toTime } from "./postsApi";
+import type { DashboardContext } from "./DashboardPage";
 import { StatCard } from "./StatCard";
 import styles from "./DashboardPage.module.css";
 
-interface Props {
-  posts: PostMeta[] | null;
-  error: string;
-  onRetry: () => void;
-}
-
-export function DashboardOverview({ posts, error, onRetry }: Props) {
-  const published = posts?.filter((p) => p.status === "published").length ?? null;
-  const drafts = posts?.filter((p) => p.status === "draft").length ?? null;
-  const recent = posts ? [...posts].sort((a, b) => b.updated_at - a.updated_at).slice(0, 8) : null;
+export default function DashboardOverview() {
+  const { posts: all, error, reload: onRetry } = useOutletContext<DashboardContext>();
+  const posts = all?.filter((p) => p.published !== STATUS.archived) ?? null;
+  const published = posts?.filter((p) => p.published === STATUS.published).length ?? null;
+  const drafts = posts?.filter((p) => p.published === STATUS.draft).length ?? null;
+  const recent = posts ? [...posts].sort((a, b) => toTime(b.updated_at) - toTime(a.updated_at)).slice(0, 8) : null;
 
   return (
     <div className={styles.content}>
@@ -71,9 +68,9 @@ export function DashboardOverview({ posts, error, onRetry }: Props) {
                     <Link to={`/admin/post-editor/${p.id}`}>{p.title || "(untitled)"}</Link>
                   </td>
                   <td>
-                    <span className={`${styles.badge} ${p.status === "published" ? styles.badgeOk : styles.badgeDraft}`}>{p.status}</span>
+                    <span className={`${styles.badge} ${p.published === STATUS.published ? styles.badgeOk : styles.badgeDraft}`}>{p.published === STATUS.published ? "published" : "draft"}</span>
                   </td>
-                  <td>{formatDate(p.updated_at)}</td>
+                  <td>{fmtDate(p.updated_at)}</td>
                 </tr>
               ))}
             </tbody>

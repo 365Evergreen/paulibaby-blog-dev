@@ -3,6 +3,8 @@ import AppShell from "../layouts/AppShell";
 import Home from "../pages/HomePage/HomePage";
 import Archive from "../pages/Archive/Archive";
 import DashboardPage from "../pages/DashboardPage/DashboardPage";
+import DashboardOverview from "../pages/DashboardPage/DashboardOverview";
+import PostsPage from "../pages/DashboardPage/PostsPage";
 import PostEditorPage from "../pages/admin/PostEditor";
 import MediaLibraryPage from "../pages/MediaLibraryPage/MediaLibraryPage";
 import MediaAdmin from "../components/MediaLibrary/MediaLibrary";
@@ -12,7 +14,10 @@ export function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/dashboard" element={<DashboardPage />}>
+          <Route index element={<DashboardOverview />} />
+          <Route path="posts" element={<PostsPage />} />
+        </Route>
         <Route path="/" element={<AppShell />}>
           <Route index element={<Home />} />
           <Route path="/archive" element={<Archive />} />
