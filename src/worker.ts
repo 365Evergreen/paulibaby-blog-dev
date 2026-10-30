@@ -46,6 +46,8 @@ interface Post {
   body: string;
   cover_image: string | null;
   published: number;
+  template_id: number | null;
+  template_content: string;
   category_ids: number[];
   created_at: string;
   updated_at: string;
@@ -57,6 +59,37 @@ interface Category {
   slug: string;
   parent_id: number | null;
   created_at: string;
+}
+
+type TemplateType = "post" | "page";
+type TemplateLayout = "article" | "feature" | "basic";
+
+interface TemplateSchema {
+  version: 1;
+  layout: TemplateLayout;
+  sections: unknown[];
+  components?: TemplateComponent[];
+}
+
+interface TemplateComponent {
+  id: string;
+  type: "hero" | "richText" | "callToAction";
+  props: Record<string, string>;
+}
+
+interface Template {
+  id: number;
+  name: string;
+  template_type: TemplateType;
+  schema: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface TemplateInput {
+  name?: unknown;
+  template_type?: unknown;
+  schema?: unknown;
 }
 
 interface Media {
@@ -140,6 +173,50 @@ function buildCategoryFilter(categoryParam: string | null): { clause: string; bi
     clause: `p.id IN (SELECT pc.post_id FROM post_categories pc JOIN categories c ON pc.category_id = c.id WHERE c.slug IN (${placeholders}))`,
     binds: slugs,
   };
+}
+
+function parseTemplateInput(body: TemplateInput): { value: { name: string; templateType: TemplateType; schema: string } } | { error: string } {
+  const name = typeof body.name === "string" ? body.name.trim() : "";
+  const templateType = body.template_type;
+  const schema = body.schema;
+
+  if (!name) return { error: "Template name is required" };
+  if (name.length > 120) return { error: "Template name must be 120 characters or fewer" };
+  if (templateType !== "post" && templateType !== "page") return { error: "Template type must be post or page" };
+  if (!schema || typeof schema !== "object" || Array.isArray(schema)) return { error: "Template schema must be an object" };
+
+  const candidate = schema as Partial<TemplateSchema>;
+  if (candidate.version !== 1) return { error: "Template schema version must be 1" };
+  if (candidate.layout !== "article" && candidate.layout !== "feature" && candidate.layout !== "basic") return { error: "Template layout is invalid" };
+  if (!Array.isArray(candidate.sections)) return { error: "Template sections must be an array" };
+  const components = candidate.components ?? [];
+  if (!Array.isArray(components)) return { error: "Template components must be an array" };
+  if (!components.every((component) =>
+    component &&
+    typeof component === "object" &&
+    typeof (component as TemplateComponent).id === "string" &&
+    ["hero", "richText", "callToAction"].includes((component as TemplateComponent).type) &&
+    typeof (component as TemplateComponent).props === "object" &&
+    !Array.isArray((component as TemplateComponent).props),
+  )) return { error: "Template component configuration is invalid" };
+
+  return { value: { name, templateType, schema: JSON.stringify({ ...candidate, components }) } };
+}
+
+function formatTemplate(template: Template): Omit<Template, "schema"> & { schema: TemplateSchema } {
+  return { ...template, schema: JSON.parse(template.schema) as TemplateSchema };
+}
+
+function parsePostTemplate(body: Partial<Post>): { value: { templateId: number | null; content: string } } | { error: string } {
+  const templateId = body.template_id ?? null;
+  if (templateId !== null && (!Number.isInteger(templateId) || templateId < 1)) return { error: "Template ID is invalid" };
+  const content = body.template_content ?? {};
+  if (!content || typeof content !== "object" || Array.isArray(content)) return { error: "Template content must be an object" };
+  return { value: { templateId, content: JSON.stringify(content) } };
+}
+
+function formatPostTemplate(post: Post): Omit<Post, "template_content"> & { template_content: Record<string, unknown> } {
+  return { ...post, template_content: JSON.parse(post.template_content || "{}") as Record<string, unknown> };
 }
 
 function guessContentType(key: string): string {
@@ -365,15 +442,23 @@ export default {
     if (path === "/api/admin/posts" && method === "POST") {
       const body = await request.json() as Partial<Post> & { category_ids?: number[] };
       const slug = body.slug || slugify(body.title || "untitled");
+      const template = parsePostTemplate(body);
+      if ("error" in template) return json({ error: template.error }, 400);
+      if (template.value.templateId !== null) {
+        const found = await env.DB.prepare("SELECT id FROM templates WHERE id = ?").bind(template.value.templateId).first();
+        if (!found) return json({ error: "Template not found" }, 400);
+      }
       const result = await env.DB.prepare(
-        "INSERT INTO posts (slug, title, excerpt, body, cover_image, published) VALUES (?, ?, ?, ?, ?, ?)"
+        "INSERT INTO posts (slug, title, excerpt, body, cover_image, published, template_id, template_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
       ).bind(
         slug,
         body.title || "",
         body.excerpt || "",
         body.body || "",
         body.cover_image || null,
-        body.published ? 1 : 0
+        body.published ? 1 : 0,
+        template.value.templateId,
+        template.value.content,
       ).run();
       const newId = result.meta.last_row_id as number;
       const categoryIds = body.category_ids || [];
@@ -393,14 +478,20 @@ export default {
           .bind(id).first<Post>();
         if (!post) return json({ error: "Not found" }, 404);
         post.category_ids = await getPostCategoryIds(env.DB, id);
-        return json(post);
+        return json(formatPostTemplate(post));
       }
 
       if (method === "PUT") {
         const body = await request.json() as Partial<Post> & { category_ids?: number[] };
         const slug = body.slug || slugify(body.title || "untitled");
+        const template = parsePostTemplate(body);
+        if ("error" in template) return json({ error: template.error }, 400);
+        if (template.value.templateId !== null) {
+          const found = await env.DB.prepare("SELECT id FROM templates WHERE id = ?").bind(template.value.templateId).first();
+          if (!found) return json({ error: "Template not found" }, 400);
+        }
         await env.DB.prepare(
-          "UPDATE posts SET slug = ?, title = ?, excerpt = ?, body = ?, cover_image = ?, published = ?, updated_at = datetime('now') WHERE id = ?"
+          "UPDATE posts SET slug = ?, title = ?, excerpt = ?, body = ?, cover_image = ?, published = ?, template_id = ?, template_content = ?, updated_at = datetime('now') WHERE id = ?"
         ).bind(
           slug,
           body.title || "",
@@ -408,6 +499,8 @@ export default {
           body.body || "",
           body.cover_image || null,
           body.published ? 1 : 0,
+          template.value.templateId,
+          template.value.content,
           id
         ).run();
         await syncPostCategories(env.DB, id, body.category_ids || []);
@@ -656,6 +749,40 @@ export default {
       const category = await env.DB.prepare("SELECT * FROM categories WHERE id = ?")
         .bind(result.meta.last_row_id).first<Category>();
       return json(category, 201);
+    }
+
+    // --- Admin: templates ---
+    if (path === "/api/admin/templates" && method === "GET") {
+      const results = await env.DB.prepare(
+        "SELECT * FROM templates ORDER BY updated_at DESC, id DESC"
+      ).all<Template>();
+      return json(results.results.map(formatTemplate));
+    }
+
+    if (path === "/api/admin/templates" && method === "POST") {
+      const input = parseTemplateInput(await request.json() as TemplateInput);
+      if ("error" in input) return json({ error: input.error }, 400);
+
+      const result = await env.DB.prepare(
+        "INSERT INTO templates (name, template_type, schema) VALUES (?, ?, ?)"
+      ).bind(input.value.name, input.value.templateType, input.value.schema).run();
+      const template = await env.DB.prepare("SELECT * FROM templates WHERE id = ?")
+        .bind(result.meta.last_row_id).first<Template>();
+      return json(formatTemplate(template!), 201);
+    }
+
+    const templateMatch = path.match(/^\/api\/admin\/templates\/(\d+)$/);
+    if (templateMatch && method === "PUT") {
+      const input = parseTemplateInput(await request.json() as TemplateInput);
+      if ("error" in input) return json({ error: input.error }, 400);
+
+      const id = parseInt(templateMatch[1]);
+      const result = await env.DB.prepare(
+        "UPDATE templates SET name = ?, template_type = ?, schema = ?, updated_at = datetime('now') WHERE id = ?"
+      ).bind(input.value.name, input.value.templateType, input.value.schema, id).run();
+      if (result.meta.changes === 0) return json({ error: "Template not found" }, 404);
+      const template = await env.DB.prepare("SELECT * FROM templates WHERE id = ?").bind(id).first<Template>();
+      return json(formatTemplate(template!));
     }
 
     const categoryMatch = path.match(/^\/api\/admin\/categories\/(\d+)$/);

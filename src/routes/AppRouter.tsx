@@ -5,7 +5,10 @@ import Archive from "../pages/Archive/Archive";
 import DashboardPage from "../pages/DashboardPage/DashboardPage";
 import DashboardOverview from "../pages/DashboardPage/DashboardOverview";
 import PostsPage from "../pages/DashboardPage/PostsPage";
-import UsersPage from "../pages/DashboardPage/UsersPage";
+import TemplatesPage from "../pages/DashboardPage/Templates/TemplatesPage";
+import TemplateEditorPage from "../pages/DashboardPage/Templates/TemplateEditorPage";
+import ThemesPage from "../pages/DashboardPage/ThemesPage";
+import UsersPage from "../pages/DashboardPage/UsersPage/UsersPage";
 import PostEditorPage from "../pages/PostEditorPage/PostEditorPage";
 import MediaLibraryPage from "../pages/MediaLibraryPage/MediaLibraryPage";
 import MediaAdmin from "../components/MediaLibrary/MediaLibrary";
@@ -31,7 +34,10 @@ export function AppRouter() {
             <Route path="admin/dashboard" element={<DashboardPage />}>
               <Route index element={<DashboardOverview />} />
               <Route path="posts" element={<PostsPage />} />
+              <Route path="templates" element={<TemplatesPage />} />
+              <Route path="templates/:id" element={<TemplateEditorPage />} />
               <Route path="users" element={<UsersPage />} />
+              <Route path="themes" element={<ThemesPage />} />
             </Route>
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/admin/post-editor" element={<PostEditorPage />} />

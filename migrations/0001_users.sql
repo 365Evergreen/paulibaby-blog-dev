@@ -3,8 +3,8 @@
 
 CREATE TABLE IF NOT EXISTS users (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  first_name TEXT NOT NULL,
-  last_name  TEXT NOT NULL,
+  first_name TEXT NOT NULL DEFAULT '',
+  last_name  TEXT NOT NULL DEFAULT '',
   email      TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
   role       TEXT NOT NULL DEFAULT 'editor',  -- 'admin' or 'editor'

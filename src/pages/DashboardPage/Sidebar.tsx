@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { FileText, Image, LayoutDashboard, Settings, Users, X, Palette, LayoutTemplate, Layers2 } from "lucide-react";
+import { Palette, FileText, Image, LayoutDashboard, LayoutTemplate, Settings, Users, X , Layers2 } from "lucide-react";
 import styles from "./DashboardPage.module.css";
 
 const items = [
