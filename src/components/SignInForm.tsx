@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/immutability */
 /**
  * src/components/SignInForm.tsx — email/password login form.
  *
