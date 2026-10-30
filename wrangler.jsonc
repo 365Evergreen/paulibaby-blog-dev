@@ -35,6 +35,22 @@
     }
   ],
 
+  // Worker Previews (reuses the existing bindings)
+  "previews": {
+    "d1_databases": [
+      {
+        "binding": "DB",
+        "database_name": "paulibaby-blog",
+        "database_id": "d420d8f1-bae9-4ff8-9eb8-7ceed2b2c7a2",
+        "migrations_dir": "migrations"
+      }
+    ],
+    "r2_buckets": [
+      { "binding": "CONTENT", "bucket_name": "paulibaby-blog-content" },
+      { "binding": "UPLOADS", "bucket_name": "paulibaby-blog-uploads" }
+    ]
+  },
+
   // Production/Remote Overrides
 "env": {
   "production": {
