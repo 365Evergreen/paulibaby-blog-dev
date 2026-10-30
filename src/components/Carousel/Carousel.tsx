@@ -73,7 +73,7 @@ export default function LatestslidesSlider({
               </div>
               <div className={styles.slideText}>  
                 <p>{slide.excerpt}</p>
-              </div>  <button onClick={() => navigate(`/blog//${slide.slug}`)} className={styles.readMoreButton}> Read more
+              </div>  <button onClick={() => navigate(`/posts/${slide.category_slug || "uncategorised"}/${slide.slug}`)} className={styles.readMoreButton}> Read more
           </button>
             </div>
           </div>
