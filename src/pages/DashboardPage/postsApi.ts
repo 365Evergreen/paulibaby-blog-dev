@@ -5,6 +5,7 @@ export const STATUS = { draft: 0, published: 1, archived: 3 } as const;
 export interface AdminPost {
   id: number;
   slug: string;
+  category_slug?: string | null;
   title: string;
   excerpt: string;
   published: number;

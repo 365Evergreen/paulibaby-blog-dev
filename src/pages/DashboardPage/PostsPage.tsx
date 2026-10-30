@@ -164,7 +164,7 @@ export default function PostsPage() {
                     </Link>
                     <div className={styles.rowActions}>
                       {p.published === STATUS.published && (
-                        <a href={`/posts/${encodeURIComponent(p.slug)}`} target="_blank" rel="noopener noreferrer">
+                        <a href={`/posts/${encodeURIComponent(p.category_slug || "uncategorised")}/${encodeURIComponent(p.slug)}`} target="_blank" rel="noopener noreferrer">
                           View
                         </a>
                       )}

@@ -15,6 +15,7 @@ interface Slide {
   autoslide: boolean;
   interval?: number;
   slug: string;
+  category_slug?: string | null;
 }
 const HomePage = () => {
   const [slides, setSlides] = useState<Slide[]>([]);

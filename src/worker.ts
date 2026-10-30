@@ -127,6 +127,10 @@ async function syncPostCategories(db: D1Database, postId: number, categoryIds: n
   await db.batch(stmts);
 }
 
+// First category slug for a post (lowest category id), used to build /posts/:category/:slug URLs.
+const CATEGORY_SLUG_SQL =
+  "(SELECT c.slug FROM post_categories pc JOIN categories c ON c.id = pc.category_id WHERE pc.post_id = p.id ORDER BY c.id LIMIT 1) AS category_slug";
+
 function buildCategoryFilter(categoryParam: string | null): { clause: string; binds: string[] } | null {
   if (!categoryParam) return null;
   const slugs = categoryParam.split(",").map((s) => s.trim()).filter(Boolean);
@@ -268,7 +272,7 @@ export default {
         ? `WHERE p.published = 1 AND ${catFilter.clause}`
         : "WHERE p.published = 1";
       const results = await env.DB.prepare(
-        `SELECT p.id, p.slug, p.title, p.excerpt, p.cover_image, p.created_at
+        `SELECT p.id, p.slug, p.title, p.excerpt, p.cover_image, p.created_at, ${CATEGORY_SLUG_SQL}
          FROM posts p
          ${whereClause}
          ORDER BY p.created_at DESC`
@@ -287,7 +291,7 @@ export default {
     if (postMatch && method === "GET") {
       const slug = postMatch[1];
       const post = await env.DB.prepare(
-        "SELECT * FROM posts WHERE slug = ? AND published = 1"
+        `SELECT p.*, ${CATEGORY_SLUG_SQL} FROM posts p WHERE p.slug = ? AND p.published = 1`
       ).bind(slug).first<Post>();
       if (!post) return json({ error: "Not found" }, 404);
       post.category_ids = await getPostCategoryIds(env.DB, post.id);
@@ -346,7 +350,7 @@ export default {
       const catFilter = buildCategoryFilter(url.searchParams.get("category"));
       const whereClause = catFilter ? `WHERE ${catFilter.clause}` : "";
       const results = await env.DB.prepare(
-        `SELECT p.* FROM posts p ${whereClause} ORDER BY p.created_at DESC`
+        `SELECT p.*, ${CATEGORY_SLUG_SQL} FROM posts p ${whereClause} ORDER BY p.created_at DESC`
       ).bind(...(catFilter?.binds ?? [])).all();
       const postsWithCats = await Promise.all(
         results.results.map(async (p: any) => ({

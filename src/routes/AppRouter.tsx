@@ -23,6 +23,7 @@ export function AppRouter() {
           <Route index element={<Home />} />
           <Route path="/archive" element={<Archive />} />
           <Route path="/sign-in" element={<SignInPage />} />
+          <Route path="/posts/:category/:slug" element={<SinglePostPage />} />
           <Route path="/posts/:slug" element={<SinglePostPage />} />
         </Route>
         <Route element={<RequireAuth />}>
