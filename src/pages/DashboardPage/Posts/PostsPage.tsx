@@ -1,57 +1,69 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertCircle, ArrowDown, ArrowUp, Search } from "lucide-react";
-import { STATUS, fetchPages, fmtDate, setPageStatus, toTime, type AdminPage } from "./pagesAPI";
-import styles from "./DashboardPage.module.css";
+import { STATUS, fetchCategories, fetchPosts, fmtDate, setPostStatus, toTime, type AdminPost, type Category } from "./postsApi";
+import styles from "../DashboardPage.module.css";
 
 type Tab = "all" | "published" | "draft" | "archived";
 type SortKey = "title" | "date";
 
-const inTab = (p: AdminPage, tab: Tab) =>
+const inTab = (p: AdminPost, tab: Tab) =>
   tab === "archived" ? p.published === STATUS.archived
   : p.published !== STATUS.archived && (tab === "all" || (tab === "published" ? p.published === STATUS.published : p.published === STATUS.draft));
 
 const statusLabel = (n: number) => (n === STATUS.published ? "published" : n === STATUS.archived ? "archived" : "draft");
 
-export default function PagesPage() {
-  const [pages, setPages] = useState<AdminPage[] | null>(null);
+export default function PostsPage() {
+  const [posts, setPosts] = useState<AdminPost[] | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [error, setError] = useState("");
   const [tab, setTab] = useState<Tab>("all");
   const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("");
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "date", dir: -1 });
   const [busyId, setBusyId] = useState<number | null>(null);
 
   const load = useCallback(() => {
-    fetchPages().then(setPages, (e: Error) => setError(e.message));
+    Promise.all([fetchPosts(), fetchCategories().catch(() => [] as Category[])]).then(
+      ([p, c]) => {
+        setPosts(p);
+        setCategories(c);
+      },
+      (e: Error) => setError(e.message),
+    );
   }, []);
 
   useEffect(load, [load]);
 
   const retry = () => {
     setError("");
-    setPages(null);
+    setPosts(null);
     load();
   };
 
   const counts = useMemo(() => {
     const c: Record<Tab, number> = { all: 0, published: 0, draft: 0, archived: 0 };
-    pages?.forEach((p) => (Object.keys(c) as Tab[]).forEach((t) => inTab(p, t) && c[t]++));
+    posts?.forEach((p) => (Object.keys(c) as Tab[]).forEach((t) => inTab(p, t) && c[t]++));
     return c;
-  }, [pages]);
+  }, [posts]);
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return (pages ?? [])
+    const catId = category ? Number(category) : null;
+    return (posts ?? [])
       .filter((p) => inTab(p, tab))
-      .filter((p) => !q || p.title.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q))
+      .filter((p) => !q || p.title.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q) || p.excerpt.toLowerCase().includes(q))
+      .filter((p) => catId === null || p.category_ids.includes(catId))
       .sort((a, b) => sort.dir * (sort.key === "title" ? a.title.localeCompare(b.title) : toTime(a.created_at) - toTime(b.created_at)));
-  }, [pages, tab, query, sort]);
+  }, [posts, tab, query, category, sort]);
 
-  async function changeStatus(p: AdminPage, published: number) {
+  const catName = (id: number) => categories.find((c) => c.id === id)?.name;
+
+  async function changeStatus(p: AdminPost, published: number) {
     setBusyId(p.id);
     try {
-      await setPageStatus(p.id, published);
-      setPages((cur) => cur?.map((x) => (x.id === p.id ? { ...x, published } : x)) ?? null);
+      await setPostStatus(p.id, published);
+      setPosts((cur) => cur?.map((x) => (x.id === p.id ? { ...x, published } : x)) ?? null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Update failed");
     } finally {
@@ -59,7 +71,7 @@ export default function PagesPage() {
     }
   }
 
-  function archive(p: AdminPage) {
+  function archive(p: AdminPost) {
     if (window.confirm(`Move "${p.title || "(untitled)"}" to the archive?`)) void changeStatus(p, STATUS.archived);
   }
 
@@ -72,9 +84,9 @@ export default function PagesPage() {
   return (
     <div className={styles.content}>
       <div className={styles.pageHead}>
-        <h1>Pages</h1>
-        <Link to="/admin/page-editor" className={`${styles.btn} ${styles.primary}`}>
-          Add page
+        <h1>Posts</h1>
+        <Link to="/admin/post-editor" className={`${styles.btn} ${styles.primary}`}>
+          Add post
         </Link>
       </div>
 
@@ -87,11 +99,19 @@ export default function PagesPage() {
       </div>
 
       <div className={styles.toolbar}>
+        <select className={styles.input} value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Filter by category">
+          <option value="">All categories</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
         <div className={styles.search}>
           <Search size={16} />
-          <input className={styles.input} type="search" placeholder="Search pages" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search pages" />
+          <input className={styles.input} type="search" placeholder="Search posts" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search posts" />
         </div>
-        <span className={styles.muted}>{pages ? `${rows.length} items` : ""}</span>
+        <span className={styles.muted}>{posts ? `${rows.length} items` : ""}</span>
       </div>
 
       {error && (
@@ -113,6 +133,7 @@ export default function PagesPage() {
                     Title {arrow("title")}
                   </button>
                 </th>
+                <th>Categories</th>
                 <th>Status</th>
                 <th aria-sort={sort.key === "date" ? (sort.dir === 1 ? "ascending" : "descending") : "none"}>
                   <button className={styles.sortBtn} onClick={() => toggleSort("date")}>
@@ -122,32 +143,32 @@ export default function PagesPage() {
               </tr>
             </thead>
             <tbody>
-              {pages === null && !error &&
+              {posts === null && !error &&
                 Array.from({ length: 5 }, (_, i) => (
                   <tr key={i}>
-                    <td colSpan={3}>
+                    <td colSpan={4}>
                       <div className={styles.skeleton} />
                     </td>
                   </tr>
                 ))}
-              {pages && rows.length === 0 && (
+              {posts && rows.length === 0 && (
                 <tr>
-                  <td colSpan={3}>No pages found.</td>
+                  <td colSpan={4}>No posts found.</td>
                 </tr>
               )}
               {rows.map((p) => (
                 <tr key={p.id} className={`${styles.postRow} ${busyId === p.id ? styles.busy : ""}`}>
                   <td>
-                    <Link to={`/admin/page-editor/${p.id}`} className={styles.postTitle}>
+                    <Link to={`/admin/post-editor/${p.id}`} className={styles.postTitle}>
                       {p.title || "(no title)"}
                     </Link>
                     <div className={styles.rowActions}>
                       {p.published === STATUS.published && (
-                        <a href={`/${encodeURIComponent(p.slug)}`} target="_blank" rel="noopener noreferrer">
+                        <a href={`/posts/${encodeURIComponent(p.category_slug || "uncategorised")}/${encodeURIComponent(p.slug)}`} target="_blank" rel="noopener noreferrer">
                           View
                         </a>
                       )}
-                      <Link to={`/admin/page-editor/${p.id}`}>Edit</Link>
+                      <Link to={`/admin/post-editor/${p.id}`}>Edit</Link>
                       {p.published === STATUS.archived ? (
                         <button onClick={() => void changeStatus(p, STATUS.draft)}>Restore</button>
                       ) : (
@@ -157,6 +178,7 @@ export default function PagesPage() {
                       )}
                     </div>
                   </td>
+                  <td>{p.category_ids.map(catName).filter(Boolean).join(", ") || "—"}</td>
                   <td>
                     <span className={`${styles.badge} ${p.published === STATUS.published ? styles.badgeOk : styles.badgeDraft}`}>{statusLabel(p.published)}</span>
                   </td>
