@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import type { Editor, JSONContent } from "@tiptap/core";
+import { TextSelection } from "@tiptap/pm/state";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -240,9 +241,14 @@ export default function BlockEditor({
       last && last.type.name === "paragraph" && last.childCount === 0
         ? doc.content.size - last.nodeSize
         : doc.content.size;
+    // Place the cursor inside the new block so headings, quotes, etc. are typed into directly.
     ed.chain()
       .insertContentAt(pos, [node, para()])
-      .focus("end")
+      .command(({ tr }) => {
+        tr.setSelection(TextSelection.near(tr.doc.resolve(pos), 1));
+        return true;
+      })
+      .focus()
       .scrollIntoView()
       .run();
   }
