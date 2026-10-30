@@ -1,0 +1,6 @@
+.wrap { display:grid; place-items:center; min-height:60vh; padding:2rem 1rem; }
+.card { width:100%; max-width:380px; padding:2rem; border:1px solid var(--border, #ddd); border-radius:12px; text-align:center; background:var(--bg, #fff); }
+.card h1 { margin:0 0 1rem; font-size:1.5rem; }
+.btn { display:inline-block; margin-top:.5rem; padding:.65rem 1.25rem; border-radius:8px; background:var(--accent, #2271b1); color:#fff; text-decoration:none; font-weight:600; }
+.link { display:block; margin-top:1rem; font-size:.9rem; }
+.note { margin-top:1rem; font-size:.8rem; opacity:.7; }
