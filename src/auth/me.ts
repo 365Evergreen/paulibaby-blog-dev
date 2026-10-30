@@ -1,3 +1,5 @@
+import { apiFetch } from "../lib/auth";
+
 export interface Me {
   authenticated: boolean;
   email?: string;
@@ -5,4 +7,4 @@ export interface Me {
 }
 
 export const fetchMe = (): Promise<Me> =>
-  fetch("/api/auth/me", { credentials: "same-origin" }).then((r) => (r.ok ? (r.json() as Promise<Me>) : { authenticated: false }));
+  apiFetch("/api/auth/me").then((r) => (r.ok ? (r.json() as Promise<Me>) : { authenticated: false }));
