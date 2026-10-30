@@ -5,6 +5,7 @@ import Archive from "../pages/Archive/Archive";
 import DashboardPage from "../pages/DashboardPage/DashboardPage";
 import DashboardOverview from "../pages/DashboardPage/DashboardOverview";
 import PostsPage from "../pages/DashboardPage/PostsPage";
+import TemplatesPage from "../pages/DashboardPage/TemplatesPage";
 import ThemesPage from "../pages/DashboardPage/ThemesPage";
 import UsersPage from "../pages/DashboardPage/UsersPage";
 import PostEditorPage from "../pages/PostEditorPage/PostEditorPage";
@@ -32,6 +33,7 @@ export function AppRouter() {
             <Route path="admin/dashboard" element={<DashboardPage />}>
               <Route index element={<DashboardOverview />} />
               <Route path="posts" element={<PostsPage />} />
+              <Route path="templates" element={<TemplatesPage />} />
               <Route path="users" element={<UsersPage />} />
               <Route path="themes" element={<ThemesPage />} />
             </Route>
