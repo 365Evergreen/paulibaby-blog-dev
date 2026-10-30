@@ -5,7 +5,7 @@ import Archive from "../pages/Archive/Archive";
 import DashboardPage from "../pages/DashboardPage/DashboardPage";
 import DashboardOverview from "../pages/DashboardPage/DashboardOverview";
 import PostsPage from "../pages/DashboardPage/PostsPage";
-import PostEditorPage from "../pages/admin/PostEditor";
+import PostEditorPage from "../pages/PostEditorPage/PostEditorPage";
 import MediaLibraryPage from "../pages/MediaLibraryPage/MediaLibraryPage";
 import MediaAdmin from "../components/MediaLibrary/MediaLibrary";
 import AdminPage from "../pages/AdminPage/AdminPage";
