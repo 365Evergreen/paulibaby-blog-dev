@@ -26,7 +26,7 @@ export function AppRouter() {
         </Route>
         <Route element={<RequireAuth />}>
           <Route element={<EditorShell />}>
-            <Route path="/dashboard" element={<DashboardPage />}>
+            <Route path="admin/dashboard" element={<DashboardPage />}>
               <Route index element={<DashboardOverview />} />
               <Route path="posts" element={<PostsPage />} />
             </Route>
