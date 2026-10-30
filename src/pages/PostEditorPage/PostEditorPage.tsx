@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import TipTapEditor from "../../editor/TiptapEditor";
+import TipTapEditor from "../../editor/BlockEditor";
 import styles from "./PostEditorPage.module.css";
 
 type Post = {
@@ -289,20 +289,21 @@ export default function PostEditorPage() {
         </div>
       </header>
 
-      {/* Full-width editor area */}
-      <div className={styles.editorContent}>
+      {/* Block drawer + canvas */}
+      <TipTapEditor
+        value={editing.body}
+        onChange={(html) => setEditing((cur) => ({ ...cur, body: html }))}
+        onUpload={uploadImage}
+        onError={setMessage}
+      >
         <input
           type="text"
           value={editing.title}
-          onChange={(e) => setEditing({ ...editing, title: e.target.value })}
-          placeholder="Post title…"
+          onChange={(e) => setEditing((cur) => ({ ...cur, title: e.target.value }))}
+          placeholder="Add title"
           className={styles.titleInput}
         />
-        <TipTapEditor
-          value={editing.body}
-          onChange={(html) => setEditing({ ...editing, body: html })}
-        />
-      </div>
+      </TipTapEditor>
 
       {/* Settings drawer */}
       {drawerOpen && (
