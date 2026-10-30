@@ -1,5 +1,5 @@
 /**
- * paulibaby1979 Worker — Blog API + Admin Panel
+ * paulibaby-blog Worker — Blog API + Admin Panel
  * 
  * Routes:
  *   GET  /api/posts          → list published posts (?category=slug1,slug2 to filter)
