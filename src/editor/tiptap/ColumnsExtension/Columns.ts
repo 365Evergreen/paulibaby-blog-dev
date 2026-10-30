@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Node } from '@tiptap/core'
 import styles from './Columns.module.css'
 
@@ -67,3 +68,4 @@ export const Columns = Node.create({
     }
   },
 })
+export default Columns

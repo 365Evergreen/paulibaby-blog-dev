@@ -35,3 +35,5 @@ export const Column = Node.create({
     return ['div', { 'data-type': 'column', class: styles.column }, 0]
   },
 })
+export default Column
+

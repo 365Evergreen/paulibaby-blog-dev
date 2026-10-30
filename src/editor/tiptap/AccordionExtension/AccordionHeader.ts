@@ -15,4 +15,5 @@ export const AccordionHeader = Node.create({
   renderHTML() {
     return ['summary', { 'data-type': 'accordion-header', class: styles.accordionHeader }, 0]
   },
-})
+});
+export default AccordionHeader
