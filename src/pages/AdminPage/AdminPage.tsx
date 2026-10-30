@@ -1,3 +1,4 @@
+import { apiFetch } from "../../lib/auth";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from './AdminPage.module.css'
@@ -30,7 +31,7 @@ export default function AdminPage() {
 
   async function loadPosts() {
     setLoading(true);
-    const res = await fetch("/api/admin/posts");
+    const res = await apiFetch("/api/admin/posts");
     const data = await res.json();
     setPosts(data);
     setLoading(false);
@@ -39,7 +40,7 @@ export default function AdminPage() {
 
   async function deletePost(id: number) {
     if (!confirm("Delete this post? This cannot be undone.")) return;
-    await fetch(`/api/admin/posts/${id}`, { method: "DELETE" });
+    await apiFetch(`/api/admin/posts/${id}`, { method: "DELETE" });
     await loadPosts();
   }
 
