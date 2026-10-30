@@ -7,6 +7,7 @@ import PostEditor from "../pages/admin/PostEditor";
 import MediaLibraryPage from "../pages/MediaLibraryPage/MediaLibraryPage";
 import MediaAdmin from "../components/MediaLibrary/MediaLibrary";
 import  AdminPage from "../pages/AdminPage/AdminPage";
+import SinglePostPage from "../pages/SinglePostPage/SinglePostPage";
 export function AppRouter() {
   return (
     <BrowserRouter>
@@ -19,6 +20,7 @@ export function AppRouter() {
           <Route path="/admin/posts/:id" element={<PostEditor />} />
           <Route path="/admin/media-library" element={<MediaLibraryPage />} />
           <Route path="/admin/media-admin" element={<MediaAdmin />} />
+          <Route path="/posts/:slug" element={<SinglePostPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
