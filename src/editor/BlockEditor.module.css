@@ -1,0 +1,17 @@
+.shell { position:relative; display:flex; flex:1; min-height:0; align-items:flex-start; }
+.drawer { position:sticky; top:0; align-self:flex-start; width:0; overflow:hidden; flex-shrink:0; height:100vh; background:#fff; border-right:0 solid #e0e0e0; transition:width .2s; }
+.drawerOpen { width:280px; border-right-width:1px; overflow-y:auto; }
+.drawerHead { padding:16px; font-weight:600; border-bottom:1px solid #e0e0e0; white-space:nowrap; }
+.grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; padding:12px; width:280px; box-sizing:border-box; }
+.blockBtn { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:12px 4px; min-height:78px; border:1px solid transparent; border-radius:4px; background:#f6f7f7; color:#1e1e1e; font:inherit; font-size:.75rem; cursor:pointer; text-align:center; }
+.blockBtn:hover:not(:disabled) { border-color:#2271b1; color:#2271b1; background:#fff; }
+.blockBtn:disabled { opacity:.5; cursor:not-allowed; }
+.toggle { position:sticky; top:12px; z-index:5; margin:12px 0 0 8px; width:34px; height:34px; display:grid; place-items:center; border:1px solid #ddd; border-radius:6px; background:#fff; color:#1e1e1e; cursor:pointer; flex-shrink:0; }
+.canvas { flex:1; min-width:0; padding:0 16px; }
+.page { max-width:840px; margin:0 auto; padding:2rem 0 6rem; }
+.page :global(.ProseMirror) { outline:none; min-height:40vh; }
+.page :global(.ProseMirror p.is-editor-empty:first-child::before) { content:attr(data-placeholder); float:left; height:0; color:#9a9a9a; pointer-events:none; }
+@media (max-width:899px) {
+  .drawer { position:fixed; left:0; top:0; z-index:60; box-shadow:2px 0 12px rgba(0,0,0,.15); }
+  .toggle { position:fixed; left:8px; bottom:16px; top:auto; z-index:61; }
+}

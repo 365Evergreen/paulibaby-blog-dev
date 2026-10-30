@@ -13,6 +13,8 @@ type Post = {
 };
 
 function renderMarkdown(md: string): string {
+  // The block editor stores HTML; older posts are markdown.
+  if (/^\s*</.test(md)) return md;
   let html = md;
   html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
   html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
