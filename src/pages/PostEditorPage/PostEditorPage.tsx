@@ -2,7 +2,7 @@
 import { apiFetch } from "../../lib/auth";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import TipTapEditor from "../../editor/BlockEditor";
+import BlockEditor from "../../editor/BlockEditor";
 import { ExternalLink, PanelRight, Plus, Redo2, Undo2 } from "lucide-react";
 import FieldEditor from "../../components/FieldEditor/FieldEditor";
 import { componentRegistry, resolveProps } from "../DashboardPage/Templates/componentRegistry";
@@ -308,7 +308,7 @@ export default function PostEditorPage() {
     <div className={styles.editorPage}>
       {/* Block drawer + canvas + settings panel */}
       <div className={styles.editorBody}>
-      <TipTapEditor
+      <BlockEditor
         value={editing.body}
         onChange={(html) => setEditing((cur) => ({ ...cur, body: html }))}
         onUpload={uploadImage}
@@ -322,7 +322,7 @@ export default function PostEditorPage() {
 
               </button>
               <button
-                className={`${styles.iconBtn} ${styles.iconBtnPrimary}`}
+                className={`${styles.iconBtn} ${blocksOpen ? styles.iconBtnActive : ""}`}
                 onClick={toggleBlocks}
                 aria-pressed={blocksOpen}
                 aria-label={blocksOpen ? "Close block drawer" : "Open block drawer"}
