@@ -15,6 +15,7 @@ import MediaLibraryPage from "../pages/MediaLibraryPage/MediaLibraryPage";
 import MediaAdmin from "../components/MediaLibrary/MediaLibrary";
 import AdminPage from "../pages/AdminPage/AdminPage";
 import SinglePostPage from "../pages/SinglePostPage/SinglePostPage";
+import SinglePage from "../pages/SinglePage/SinglePage";
 import EditorShell from "../layouts/EditorShell";
 import RequireAuth from "../auth/RequireAuth";
 import SignInPage from "../pages/SignInPage/SignInPage";
@@ -30,6 +31,7 @@ export function AppRouter() {
           <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/posts/:category/:slug" element={<SinglePostPage />} />
           <Route path="/posts/:slug" element={<SinglePostPage />} />
+          <Route path="/:slug" element={<SinglePage />} />
         </Route>
         <Route element={<RequireAuth />}>
           <Route element={<EditorShell />}>
