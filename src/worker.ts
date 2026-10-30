@@ -80,6 +80,8 @@ interface Media {
 
 interface User {
   id: number;
+  first_name: string;
+  last_name: string;
   email: string;
   role: string;
   created_at: string;
@@ -242,8 +244,8 @@ export default {
 
       // Sign-in entry point: send the user on to the app.
       if (path === "/api/admin/login" && method === "GET") {
-        const to = url.searchParams.get("redirect") ?? "/dashboard";
-        const safe = to.startsWith("/") && !to.startsWith("//") && !to.includes("\\") ? to : "/dashboard";
+        const to = url.searchParams.get("redirect") ?? "/admin/dashboard";
+        const safe = to.startsWith("/") && !to.startsWith("//") && !to.includes("\\") ? to : "/admin/dashboard";
         return Response.redirect(new URL(safe, url.origin).toString(), 302);
       }
     }
@@ -291,7 +293,7 @@ export default {
       const identity = await getIdentity(request, env);
       if (identity!.role !== "admin") return json({ error: "Forbidden" }, 403);
       const results = await env.DB.prepare(
-        "SELECT id, email, role, created_at FROM users ORDER BY created_at ASC"
+        "SELECT id, first_name, last_name, email, role, created_at FROM users ORDER BY created_at ASC"
       ).all<User>();
       return json(results.results);
     }
@@ -299,20 +301,23 @@ export default {
     if (path === "/api/admin/users" && method === "POST") {
       const identity = await getIdentity(request, env);
       if (identity!.role !== "admin") return json({ error: "Forbidden" }, 403);
-      const body = await request.json() as { email?: string; password?: string; role?: string };
-      if (!body.email || !body.password) return json({ error: "Email and password required" }, 400);
+      const body = await request.json() as { first_name?: string; last_name?: string; email?: string; password?: string; role?: string };
+      const first = body.first_name?.trim();
+      const last = body.last_name?.trim();
+      const email = body.email?.trim().toLowerCase();
+      if (!first || !last || !email || !body.password) return json({ error: "First name, last name, email and password required" }, 400);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "Invalid email address" }, 400);
       if (body.password.length < 8) return json({ error: "Password must be at least 8 characters" }, 400);
+      if (body.role !== "admin" && body.role !== "editor") return json({ error: "Role must be admin or editor" }, 400);
 
-      const role = body.role === "admin" ? "admin" : "editor";
-      const existing = await env.DB.prepare("SELECT id FROM users WHERE email = ?")
-        .bind(body.email.toLowerCase()).first();
+      const existing = await env.DB.prepare("SELECT id FROM users WHERE email = ?").bind(email).first();
       if (existing) return json({ error: "Email already registered" }, 409);
 
       const hash = await hashPassword(body.password);
       const result = await env.DB.prepare(
-        "INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)"
-      ).bind(body.email.toLowerCase(), hash, role).run();
-      const user = await env.DB.prepare("SELECT id, email, role, created_at FROM users WHERE id = ?")
+        "INSERT INTO users (first_name, last_name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)"
+      ).bind(first, last, email, hash, body.role).run();
+      const user = await env.DB.prepare("SELECT id, first_name, last_name, email, role, created_at FROM users WHERE id = ?")
         .bind(result.meta.last_row_id).first<User>();
       return json(user, 201);
     }
