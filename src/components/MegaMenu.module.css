@@ -1,0 +1,89 @@
+/* Mobile first: the panel is an inline accordion section inside the open menu. */
+.panel {
+  padding: 0.25rem 0 0.75rem 0.75rem;
+}
+
+.inner {
+  display: grid;
+  gap: 1rem;
+}
+
+.heading {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.link {
+  display: grid;
+  gap: 0.125rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.link:hover {
+  background: var(--surface);
+}
+
+.linkLabel {
+  font-weight: 600;
+}
+
+.linkDesc {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.featured {
+  padding: 1rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.featuredText {
+  margin: 0 0 0.75rem;
+}
+
+.cta {
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.cta:hover {
+  text-decoration: underline;
+}
+
+/* Desktop: full-width dropdown anchored to the header. */
+@media (min-width: 64em) {
+  .panel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    padding: 0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 12px 24px rgb(0 0 0 / 0.08);
+  }
+
+  .inner {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    padding: 1.5rem var(--gutter) 2rem;
+    gap: 2rem;
+  }
+}

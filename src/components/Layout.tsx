@@ -1,25 +1,19 @@
-import { Link, NavLink, Outlet, useLocation } from "react-router";
-import styles from "./Layout.module.css";
+import { Outlet, useLocation } from "react-router";
+import { Header } from "./Header";
 
 export function Layout() {
-  const admin = useLocation().pathname.startsWith("/admin");
+  const { pathname } = useLocation();
+  const wide = pathname.startsWith("/admin") || pathname === "/";
   return (
-    <>
-      <header className={styles.header}>
-        <div className={styles.bar}>
-          <Link to="/" className={styles.brand}>
-            Paulibaby
-          </Link>
-          <nav className={styles.nav}>
-            <NavLink to="/">Posts</NavLink>
-            <NavLink to="/admin">Admin</NavLink>
-          </nav>
-        </div>
-      </header>
-      <main className={`${styles.main} ${admin ? styles.wide : ""}`}>
+    <div className="site">
+      <a className="skip-link" href="#main">
+        Skip to content
+      </a>
+      <Header />
+      <main id="main" className={`site-main${wide ? " site-main--wide" : ""}`}>
         <Outlet />
       </main>
-      <footer className={styles.footer}>© {new Date().getFullYear()} Paulibaby</footer>
-    </>
+      <footer className="site-footer">© {new Date().getFullYear()} Paulibaby</footer>
+    </div>
   );
 }
