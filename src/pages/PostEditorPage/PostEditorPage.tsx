@@ -274,10 +274,13 @@ export default function PostEditorPage() {
         <div className={styles.topbarRight}>
           {message && <span className={styles.message}>{message}</span>}
           <button
-            onClick={() => setDrawerOpen(true)}
+            onClick={() => setDrawerOpen((o) => !o)}
             className={styles.btnSecondary}
+            aria-expanded={drawerOpen}
+            aria-pressed={drawerOpen}
+            title={drawerOpen ? "Hide settings" : "Show settings"}
           >
-            ⚙ Post Settings
+            {drawerOpen ? "✕" : "⚙"} Post Settings
           </button>
           <button
             onClick={savePost}
