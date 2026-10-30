@@ -39,6 +39,11 @@ html {
   }
 }
 
+.oswald-h2 {
+  font-family: "Oswald", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;  font-style: normal;
+}
 body {
   font-size: var(--fs-base);
   line-height: 1.6;
@@ -77,6 +82,8 @@ a {
 }
 
 .site-main {
+  background: var(--surface);
+  font-family: "Oswald", sans-serif;
   flex: 1;
   width: 100%;
   max-width: var(--measure);

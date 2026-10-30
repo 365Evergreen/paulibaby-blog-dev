@@ -5,7 +5,9 @@
 	"compatibility_date": "2026-10-23",
 	"assets": {
 		"not_found_handling": "single-page-application",
-		"run_worker_first": ["/api/*"]
+		"run_worker_first": [
+			"/api/*"
+		]
 	},
 	"observability": {
 		"enabled": true
@@ -15,13 +17,35 @@
 		{
 			"binding": "DB",
 			"database_name": "paulibaby-blog",
-			"database_id": "00000000-0000-0000-0000-000000000000",
+			"database_id": "d420d8f1-bae9-4ff8-9eb8-7ceed2b2c7a2",
 			"migrations_dir": "migrations"
+		},
+		{
+			"binding": "paulibaby_blog",
+			"database_name": "paulibaby-blog",
+			"database_id": "d420d8f1-bae9-4ff8-9eb8-7ceed2b2c7a2",
+			"remote": true
 		}
 	],
 	"r2_buckets": [
-		{ "binding": "CONTENT", "bucket_name": "paulibaby-blog-content" },
-		{ "binding": "UPLOADS", "bucket_name": "paulibaby-blog-uploads" }
+		{
+			"binding": "CONTENT",
+			"bucket_name": "paulibaby-blog-content"
+		},
+		{
+			"binding": "UPLOADS",
+			"bucket_name": "paulibaby-blog-uploads"
+		},
+		{
+			"bucket_name": "paulibaby-blog-content",
+			"binding": "paulibaby_blog_content",
+			"remote": true
+		},
+		{
+			"bucket_name": "paulibaby-blog-uploads",
+			"binding": "paulibaby_blog_uploads",
+			"remote": true
+		}
 	]
 	// Secrets (`pnpm wrangler secret put <NAME>`; locally in .dev.vars): ADMIN_PASSWORD, SESSION_SECRET
 }

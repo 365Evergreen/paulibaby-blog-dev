@@ -1,10 +1,10 @@
 :root {
-  --bg: #ffffff;
+  --bg: #fffafa;
   --fg: #1a1a1f;
   --muted: #6b6b78;
   --surface: #f4f4f7;
   --border: #e1e1e8;
-  --accent: #4f46e5;
+  --accent: #5c5c5c;
   --danger: #dc2626;
   --radius: 10px;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
