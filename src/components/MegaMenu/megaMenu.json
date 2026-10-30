@@ -16,7 +16,7 @@
       {
         "heading": "Posts",
         "links": [
-          {"label": "Dashboard", "href": "/admin/dashboard"},
+          {"label": "Dashboard", "href": "/dashboard"},
           { "label": "Edit posts", "href": "/admin/post/:id" },
           { "label": "Media library", "href": "/admin/media-library" },
           { "label": "Media admin", "href": "/admin/media-admin" }
@@ -51,7 +51,6 @@
     "id": 4,
     "title": "Sign In",
     "href": "/sign-in",
-    "requiresAuth": false,
     "hasMegaMenu": false
   }
 ]
