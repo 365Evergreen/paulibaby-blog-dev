@@ -1,3 +1,4 @@
+import { apiFetch } from "../../lib/auth";
 import { useState, useRef, useCallback } from "react";
 
 interface UploadedFile {
@@ -134,7 +135,7 @@ export default function MultiFileUpload() {
     }
 
     try {
-      const resp = await fetch(`${API_BASE}/api/admin/media`, {
+      const resp = await apiFetch(`${API_BASE}/api/admin/media`, {
         method: "POST",
         body: formData,
       });

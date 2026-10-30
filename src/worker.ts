@@ -5,6 +5,7 @@
  *   POST /api/auth/login    → email + password → { token, user }
  *   POST /api/auth/logout   → invalidate current session
  *   GET  /api/auth/me       → current identity (or { authenticated: false })
+ *   GET  /api/auth/status   → { needsSetup } (true when no users exist)
  *   POST /api/auth/setup    → create first admin (only works if no users exist)
  *
  * Admin routes (require Bearer session token):
@@ -126,6 +127,10 @@ async function syncPostCategories(db: D1Database, postId: number, categoryIds: n
   await db.batch(stmts);
 }
 
+// First category slug for a post (lowest category id), used to build /posts/:category/:slug URLs.
+const CATEGORY_SLUG_SQL =
+  "(SELECT c.slug FROM post_categories pc JOIN categories c ON c.id = pc.category_id WHERE pc.post_id = p.id ORDER BY c.id LIMIT 1) AS category_slug";
+
 function buildCategoryFilter(categoryParam: string | null): { clause: string; binds: string[] } | null {
   if (!categoryParam) return null;
   const slugs = categoryParam.split(",").map((s) => s.trim()).filter(Boolean);
@@ -214,22 +219,30 @@ export default {
       return json(id ? { authenticated: true, ...id } : { authenticated: false });
     }
 
+    // --- Setup status: lets the sign-in page offer first-account creation ---
+    if (path === "/api/auth/status" && method === "GET") {
+      const count = await env.DB.prepare("SELECT COUNT(*) as n FROM users").first<{ n: number }>();
+      return json({ needsSetup: !count || count.n === 0 });
+    }
+
     // --- First-run setup: create the first admin (only works if no users exist) ---
     if (path === "/api/auth/setup" && method === "POST") {
-      const count = await env.DB.prepare("SELECT COUNT(*) as n FROM users").first<{ n: number }>();
-      if (count && count.n > 0) return json({ error: "Setup already complete" }, 403);
+      const body = await request.json() as { first_name?: string; last_name?: string; email?: string; password?: string };
+      const first = body.first_name?.trim() ?? "";
+      const last = body.last_name?.trim() ?? "";
+      const email = body.email?.trim().toLowerCase() ?? "";
+      if (!first || !last) return json({ error: "First and last name required" }, 400);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "Valid email required" }, 400);
+      if (!body.password || body.password.length < 8) return json({ error: "Password must be at least 8 characters" }, 400);
 
-      const body = await request.json() as { email?: string; password?: string; role?: string };
-      if (!body.email || !body.password) return json({ error: "Email and password required" }, 400);
-      if (body.password.length < 8) return json({ error: "Password must be at least 8 characters" }, 400);
-
-      const role = body.role === "admin" ? "admin" : "editor";
       const hash = await hashPassword(body.password);
+      // Single statement so two concurrent requests can't both create a first admin.
       const result = await env.DB.prepare(
-        "INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)"
-      ).bind(body.email.toLowerCase(), hash, role).run();
+        "INSERT INTO users (first_name, last_name, email, password_hash, role) SELECT ?, ?, ?, ?, 'admin' WHERE NOT EXISTS (SELECT 1 FROM users)"
+      ).bind(first, last, email, hash).run();
+      if (!result.meta.changes) return json({ error: "Setup already complete" }, 403);
 
-      const user = await env.DB.prepare("SELECT id, email, role, created_at FROM users WHERE id = ?")
+      const user = await env.DB.prepare("SELECT id, first_name, last_name, email, role, created_at FROM users WHERE id = ?")
         .bind(result.meta.last_row_id).first<User>();
       const token = await createSession(env.DB, user!.id);
       return json({ token, user }, 201);
@@ -259,7 +272,7 @@ export default {
         ? `WHERE p.published = 1 AND ${catFilter.clause}`
         : "WHERE p.published = 1";
       const results = await env.DB.prepare(
-        `SELECT p.id, p.slug, p.title, p.excerpt, p.cover_image, p.created_at
+        `SELECT p.id, p.slug, p.title, p.excerpt, p.cover_image, p.created_at, ${CATEGORY_SLUG_SQL}
          FROM posts p
          ${whereClause}
          ORDER BY p.created_at DESC`
@@ -278,7 +291,7 @@ export default {
     if (postMatch && method === "GET") {
       const slug = postMatch[1];
       const post = await env.DB.prepare(
-        "SELECT * FROM posts WHERE slug = ? AND published = 1"
+        `SELECT p.*, ${CATEGORY_SLUG_SQL} FROM posts p WHERE p.slug = ? AND p.published = 1`
       ).bind(slug).first<Post>();
       if (!post) return json({ error: "Not found" }, 404);
       post.category_ids = await getPostCategoryIds(env.DB, post.id);
@@ -337,7 +350,7 @@ export default {
       const catFilter = buildCategoryFilter(url.searchParams.get("category"));
       const whereClause = catFilter ? `WHERE ${catFilter.clause}` : "";
       const results = await env.DB.prepare(
-        `SELECT p.* FROM posts p ${whereClause} ORDER BY p.created_at DESC`
+        `SELECT p.*, ${CATEGORY_SLUG_SQL} FROM posts p ${whereClause} ORDER BY p.created_at DESC`
       ).bind(...(catFilter?.binds ?? [])).all();
       const postsWithCats = await Promise.all(
         results.results.map(async (p: any) => ({

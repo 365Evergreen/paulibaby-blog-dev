@@ -1,3 +1,4 @@
+import { apiFetch } from "./lib/auth";
 export interface PostMeta {
   id: string;
   slug: string;
@@ -21,7 +22,7 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(path, {
+  const res = await apiFetch(path, {
     credentials: "same-origin",
     ...init,
     headers: init?.body && !(init.body instanceof FormData) ? { "content-type": "application/json", ...init.headers } : init?.headers,

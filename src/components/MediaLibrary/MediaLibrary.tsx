@@ -1,3 +1,4 @@
+import { apiFetch } from "../../lib/auth";
 import { useState, useEffect, useCallback } from "react";
 
 interface MediaItem {
@@ -42,7 +43,7 @@ export default function MediaLibrary() {
     if (activeFilter.media_type) params.set("media_type", activeFilter.media_type);
 
     const query = params.toString();
-    const resp = await fetch(`${API_BASE}/api/admin/media${query ? `?${query}` : ""}`);
+    const resp = await apiFetch(`${API_BASE}/api/admin/media${query ? `?${query}` : ""}`);
     const data = await resp.json();
     setItems(data);
     setLoading(false);
@@ -63,7 +64,7 @@ export default function MediaLibrary() {
 
   const handleDelete = async (id: number) => {
     if (!confirm(`Delete this media file?`)) return;
-    await fetch(`${API_BASE}/api/admin/media/${id}`, { method: "DELETE" });
+    await apiFetch(`${API_BASE}/api/admin/media/${id}`, { method: "DELETE" });
     fetchMedia();
   };
 

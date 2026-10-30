@@ -1,3 +1,4 @@
+import { apiFetch } from "../../lib/auth";
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import TipTapEditor from "../../editor/BlockEditor";
@@ -90,7 +91,7 @@ export default function PostEditorPage() {
   }, [id]);
 
   async function loadCategories() {
-    const res = await fetch("/api/admin/categories");
+    const res = await apiFetch("/api/admin/categories");
     if (res.status === 403) {
       window.location.reload();
       return;
@@ -103,7 +104,7 @@ export default function PostEditorPage() {
 
   async function loadPost(postId: string) {
     setLoading(true);
-    const res = await fetch(`/api/admin/posts/${postId}`);
+    const res = await apiFetch(`/api/admin/posts/${postId}`);
     if (res.status === 403) {
       window.location.reload();
       return;
@@ -131,13 +132,13 @@ export default function PostEditorPage() {
     try {
       let res;
       if (editing.id) {
-        res = await fetch(`/api/admin/posts/${editing.id}`, {
+        res = await apiFetch(`/api/admin/posts/${editing.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
       } else {
-        res = await fetch("/api/admin/posts", {
+        res = await apiFetch("/api/admin/posts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -176,7 +177,7 @@ export default function PostEditorPage() {
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await fetch("/api/admin/upload", {
+    const res = await apiFetch("/api/admin/upload", {
       method: "POST",
       body: formData,
     });
@@ -210,7 +211,7 @@ export default function PostEditorPage() {
   async function createCategory() {
     if (!newCategoryName.trim()) return;
     setAddingCategory(true);
-    const res = await fetch("/api/admin/categories", {
+    const res = await apiFetch("/api/admin/categories", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

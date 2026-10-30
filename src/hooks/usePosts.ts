@@ -6,6 +6,7 @@ export interface Post {
   id: string
   title: string
   slug: string
+  category_slug?: string | null
   excerpt: string
   cover_image: string | null
   type: PostType
