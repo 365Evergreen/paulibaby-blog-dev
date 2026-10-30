@@ -10,6 +10,7 @@ import TemplateEditorPage from "../pages/DashboardPage/Templates/TemplateEditorP
 import ThemesPage from "../pages/DashboardPage/ThemesPage";
 import UsersPage from "../pages/DashboardPage/UsersPage/UsersPage";
 import PostEditorPage from "../pages/PostEditorPage/PostEditorPage";
+import PageEditorPage from "../pages/PageEditorPage/PageEditorPage";
 import MediaLibraryPage from "../pages/MediaLibraryPage/MediaLibraryPage";
 import MediaAdmin from "../components/MediaLibrary/MediaLibrary";
 import AdminPage from "../pages/AdminPage/AdminPage";
@@ -44,6 +45,8 @@ export function AppRouter() {
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/admin/post-editor" element={<PostEditorPage />} />
             <Route path="/admin/post-editor/:id" element={<PostEditorPage />} />
+            <Route path="/admin/page-editor" element={<PageEditorPage />} />
+            <Route path="/admin/page-editor/:id" element={<PageEditorPage />} />
             <Route path="/admin/media-library" element={<MediaLibraryPage />} />
             <Route path="/admin/media-admin" element={<MediaAdmin />} />
           </Route>

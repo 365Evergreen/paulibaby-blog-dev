@@ -1,0 +1,412 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import { apiFetch } from "../../lib/auth";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import TipTapEditor from "../../editor/BlockEditor";
+import { ExternalLink, PanelRight, Plus, Redo2, Undo2 } from "lucide-react";
+import { componentRegistry } from "../DashboardPage/Templates/componentRegistry";
+import { fetchTemplates, normalizeTemplate, type Template } from "../DashboardPage/Templates/templatesApi";
+import styles from "./PageEditorPage.module.css";
+
+type Page = {
+  id?: number;
+  slug: string;
+  title: string;
+  excerpt: string;
+  body: string;
+  cover_image: string | null;
+  published: number | boolean;
+  template_id: number | null;
+  template_content: Record<string, Record<string, string>>;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export default function PageEditorPage() {
+  const { id } = useParams<{ id: string }>();
+  const isNew = !id;
+
+  const [editing, setEditing] = useState<Page>({
+    slug: "",
+    title: "",
+    excerpt: "",
+    body: "",
+    cover_image: null,
+    published: false,
+    template_id: null,
+    template_content: {},
+  });
+  const [loading, setLoading] = useState(!isNew);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [drawerOpen, setDrawerOpen] = useState(() => window.matchMedia("(min-width: 900px)").matches);
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+  useEffect(() => {
+    loadTemplates();
+    if (!isNew) {
+      loadPage(id!);
+    }
+  }, [id]);
+
+  async function loadTemplates() {
+    try {
+      setTemplates((await fetchTemplates()).map(normalizeTemplate).filter((template) => template.template_type === "page"));
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to load templates.");
+    }
+  }
+
+  async function loadPage(pageId: string) {
+    setLoading(true);
+    const res = await apiFetch(`/api/admin/pages/${pageId}`);
+    if (res.status === 403) {
+      window.location.reload();
+      return;
+    }
+    if (res.ok) {
+      const data = await res.json();
+      setEditing({
+        ...data,
+        published: Boolean(data.published),
+        template_id: data.template_id ?? null,
+        template_content: typeof data.template_content === "object" && data.template_content ? data.template_content : {},
+      });
+    }
+    setLoading(false);
+  }
+
+  async function savePage(published: boolean = Boolean(editing.published)) {
+    setSaving(true);
+    setMessage("");
+
+    const payload = {
+      ...editing,
+      published: published ? 1 : 0,
+    };
+
+    try {
+      let res;
+      if (editing.id) {
+        res = await apiFetch(`/api/admin/pages/${editing.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        res = await apiFetch("/api/admin/pages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const created = await res.json();
+        if (created.id) {
+          setEditing((cur) => ({ ...cur, id: created.id, slug: created.slug ?? cur.slug }));
+        }
+      }
+
+      if (res.status === 403) {
+        window.location.reload();
+        return;
+      }
+
+      if (res.ok) {
+        setEditing((cur) => ({ ...cur, published }));
+        setMessage(published ? "Published!" : "Draft saved.");
+      } else {
+        setMessage("Error saving page.");
+      }
+    } catch {
+      setMessage("Network error.");
+    }
+    setSaving(false);
+    setTimeout(() => setMessage(""), 3000);
+  }
+
+  function previewPage() {
+    if (editing.published && editing.slug) window.open(`/${encodeURIComponent(editing.slug)}`, "_blank", "noopener");
+    else setMessage("Publish the page to preview it.");
+    setTimeout(() => setMessage(""), 3000);
+  }
+
+  async function uploadImage(file: File): Promise<string | null> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await apiFetch("/api/admin/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (res.status === 403) {
+      window.location.reload();
+      return null;
+    }
+
+    if (res.ok) {
+      const data = await res.json();
+      return data.url;
+    }
+    return null;
+  }
+
+  async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setMessage("Uploading image…");
+    const url = await uploadImage(file);
+    if (url) {
+      setEditing({ ...editing, cover_image: url });
+      setMessage("Image uploaded!");
+    } else {
+      setMessage("Upload failed.");
+    }
+    setTimeout(() => setMessage(""), 3000);
+  }
+
+  function chooseTemplate(templateId: string) {
+    const template = templates.find((item) => item.id === Number(templateId));
+    if (!template) {
+      setEditing((current) => ({ ...current, template_id: null, template_content: {} }));
+      return;
+    }
+    const content = Object.fromEntries((template.schema.components ?? []).map((component) => [
+      component.id,
+      { ...component.props, ...(editing.template_content[component.id] ?? {}) },
+    ]));
+    setEditing((current) => ({ ...current, template_id: template.id, template_content: content }));
+  }
+
+  function updateTemplateContent(componentId: string, key: string, value: string) {
+    setEditing((current) => ({
+      ...current,
+      template_content: {
+        ...current.template_content,
+        [componentId]: { ...(current.template_content[componentId] ?? {}), [key]: value },
+      },
+    }));
+  }
+
+ if (loading) {
+    return (
+      <div className={styles.editorPage}>
+        <div className={styles.loading}>Loading…</div>
+      </div>
+    );
+  }
+
+  const selectedTemplate = templates.find((template) => template.id === editing.template_id);
+    return (
+
+    <div className={styles.editorPage}>
+      {/* Block drawer + canvas + settings panel */}
+      <div className={styles.editorBody}>
+      <TipTapEditor
+        value={editing.body}
+        onChange={(html) => setEditing((cur) => ({ ...cur, body: html }))}
+        onUpload={uploadImage}
+        onError={setMessage}
+        topbar={({ editor, blocksOpen, toggleBlocks }) => (
+          <header className={styles.topbar}>
+            <div className={styles.topbarLeft}>
+              <button className={`${styles.iconBtn} ${styles.iconBtnPrimary}`}
+              onClick={() => navigate("/admin/dashboard")}
+              >
+
+              </button>
+              <button
+                className={`${styles.iconBtn} ${styles.iconBtnPrimary}`}
+                onClick={toggleBlocks}
+                aria-pressed={blocksOpen}
+                aria-label={blocksOpen ? "Close block drawer" : "Open block drawer"}
+                title="Toggle blocks"
+              >
+                <Plus size={18} />
+              </button>
+              <button className={styles.iconBtn} onClick={() => editor?.chain().focus().undo().run()} disabled={!editor?.can().undo()} aria-label="Undo" title="Undo">
+                <Undo2 size={18} />
+              </button>
+              <button className={styles.iconBtn} onClick={() => editor?.chain().focus().redo().run()} disabled={!editor?.can().redo()} aria-label="Redo" title="Redo">
+                <Redo2 size={18} />
+              </button>
+            </div>
+            <input
+              type="text"
+              value={editing.title}
+              onChange={(e) => setEditing((cur) => ({ ...cur, title: e.target.value }))}
+              placeholder="Add title"
+              aria-label="Page title"
+              className={styles.topbarTitle}
+            />
+            <div className={styles.topbarRight}>
+              {message && <span className={styles.message}>{message}</span>}
+              <button className={styles.btnSecondary} onClick={() => savePage(false)} disabled={saving}>
+                Save draft
+              </button>
+              <button className={styles.btnSecondary} onClick={previewPage} title="Open the published page in a new tab">
+                <ExternalLink size={14} /> Preview
+              </button>
+              <button className={styles.btnPrimary} onClick={() => savePage(true)} disabled={saving}>
+                {saving ? "Saving…" : editing.published ? "Update" : "Publish"}
+              </button>
+              <button
+                className={`${styles.iconBtn} ${drawerOpen ? styles.iconBtnActive : ""}`}
+                onClick={() => setDrawerOpen((o) => !o)}
+                aria-pressed={drawerOpen}
+                aria-label={drawerOpen ? "Hide settings" : "Show settings"}
+                title={drawerOpen ? "Hide settings" : "Show settings"}
+              >
+                <PanelRight size={18} />
+              </button>
+            </div>
+          </header>
+        )}
+        aside={
+          <>
+      {/* Settings drawer */}
+      {drawerOpen && (
+        <>
+          <div
+            className={styles.drawerOverlay}
+            onClick={() => setDrawerOpen(false)}
+          />
+          <aside className={styles.drawer}>
+            <div className={styles.drawerHeader}>
+              <h2>Page Settings</h2>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                className={styles.drawerClose}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className={styles.drawerBody}>
+              {/* Slug */}
+              <div className={styles.formGroup}>
+                <label>Slug</label>
+                <input
+                  type="text"
+                  value={editing.slug}
+                  onChange={(e) =>
+                    setEditing({ ...editing, slug: e.target.value })
+                  }
+                  placeholder="auto-generated-from-title"
+                  className={styles.formInput}
+                />
+                <small>Leave empty to auto-generate from title</small>
+              </div>
+
+              {/* Excerpt */}
+              <div className={styles.formGroup}>
+                <label>Excerpt</label>
+                <textarea
+                  value={editing.excerpt}
+                  onChange={(e) =>
+                    setEditing({ ...editing, excerpt: e.target.value })
+                  }
+                  placeholder="Short summary shown in the page list"
+                  className={styles.formTextarea}
+                  rows={4}
+                />
+              </div>
+
+              {/* Cover Image */}
+              <div className={styles.formGroup}>
+                <label>Cover Image</label>
+                <div className={styles.coverUpload}>
+                  {editing.cover_image && (
+                    <img
+                      src={editing.cover_image}
+                      alt="Cover preview"
+                      className={styles.coverPreview}
+                    />
+                  )}
+                  <input
+                    type="text"
+                    value={editing.cover_image || ""}
+                    onChange={(e) =>
+                      setEditing({ ...editing, cover_image: e.target.value })
+                    }
+                    placeholder="https://media.paulibaby.com/image.jpg"
+                    className={styles.formInput}
+                  />
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleCoverUpload}
+                    accept="image/*"
+                    style={{ display: "none" }}
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`${styles.btnSecondary} ${styles.btnFull}`}
+                  >
+                    Upload Image
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Template</label>
+                <select className={styles.formInput} value={editing.template_id ?? ""} onChange={(event) => chooseTemplate(event.target.value)}>
+                  <option value="">No template</option>
+                  {templates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}
+                </select>
+                <small>Select a template to configure its components for this page.</small>
+              </div>
+
+              {selectedTemplate?.schema.components?.map((component) => {
+                const definition = componentRegistry[component.type];
+                const content = editing.template_content[component.id] ?? component.props;
+                return (
+                  <div className={styles.formGroup} key={component.id}>
+                    <label>{definition.name}</label>
+                    <small>{definition.description}</small>
+                    {definition.fields.map((field) => (
+                      <label key={field.key}>
+                        {field.label}
+                        {field.multiline
+                          ? <textarea className={styles.formTextarea} rows={3} value={content[field.key] ?? ""} onChange={(event) => updateTemplateContent(component.id, field.key, event.target.value)} />
+                          : <input className={styles.formInput} value={content[field.key] ?? ""} onChange={(event) => updateTemplateContent(component.id, field.key, event.target.value)} />}
+                      </label>
+                    ))}
+                  </div>
+                );
+              })}
+
+              {/* Published toggle */}
+              <div className={styles.formGroup}>
+                <label className={styles.checkboxLabel}>
+                  <input
+                    type="checkbox"
+                    checked={Boolean(editing.published)}
+                    onChange={(e) =>
+                      setEditing({ ...editing, published: e.target.checked })
+                    }
+                  />
+                  Published
+                </label>
+              </div>
+            </div>
+
+            <div className={styles.drawerFooter}>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                className={`${styles.btnPrimary} ${styles.btnFull}`}
+              >
+                Done
+              </button>
+            </div>
+          </aside>
+        </>
+      )}
+          </>
+        }
+      />
+
+      </div>
+    </div>
+  );
+}
