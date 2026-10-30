@@ -1,7 +1,7 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "paulibaby-blog-dev",
-	"main": "worker/index.js",
+	"main": "src/worker.ts",
 	"compatibility_date": "2026-10-23",
 	"assets": {
 		"not_found_handling": "single-page-application",
