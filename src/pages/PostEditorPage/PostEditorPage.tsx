@@ -75,7 +75,7 @@ export default function PostEditorPage() {
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(() => window.matchMedia("(min-width: 900px)").matches);
   const [categories, setCategories] = useState<Category[]>([]);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryParent, setNewCategoryParent] = useState<string>("");
@@ -289,7 +289,8 @@ export default function PostEditorPage() {
         </div>
       </header>
 
-      {/* Block drawer + canvas */}
+      {/* Block drawer + canvas + settings panel */}
+      <div className={styles.editorBody}>
       <TipTapEditor
         value={editing.body}
         onChange={(html) => setEditing((cur) => ({ ...cur, body: html }))}
@@ -470,6 +471,7 @@ export default function PostEditorPage() {
           </aside>
         </>
       )}
+      </div>
     </div>
   );
 }
