@@ -23,7 +23,9 @@
  *   DELETE /api/admin/categories/:id → delete category
  */
 
-export interface Env {
+import { getIdentity, type AuthEnv } from "./accessAuth";
+
+export interface Env extends AuthEnv {
   DB: D1Database;
   BUCKET: R2Bucket;
   ASSETS: Fetcher;
@@ -167,6 +169,27 @@ export default {
 
     if (method === "OPTIONS") {
       return new Response(null, { headers: CORS });
+    }
+
+    // --- Auth: who am I (works for anonymous visitors too) ---
+    if (path === "/api/auth/me" && method === "GET") {
+      const id = await getIdentity(request, env);
+      return json(id ? { authenticated: true, ...id } : { authenticated: false });
+    }
+
+    // --- Admin API: every /api/admin/* route requires a valid Access session with a role ---
+    if (path.startsWith("/api/admin/")) {
+      const identity = await getIdentity(request, env);
+      if (!identity) return json({ error: "Unauthorized" }, 401);
+      // Editors can create and edit content but not permanently delete anything.
+      if (identity.role === "editor" && method === "DELETE") return json({ error: "Forbidden" }, 403);
+
+      // Sign-in entry point: Access challenges this path, then we send the user on to the app.
+      if (path === "/api/admin/login" && method === "GET") {
+        const to = url.searchParams.get("redirect") ?? "/dashboard";
+        const safe = to.startsWith("/") && !to.startsWith("//") && !to.includes("\\") ? to : "/dashboard";
+        return Response.redirect(new URL(safe, url.origin).toString(), 302);
+      }
     }
 
     // --- Public API: list published posts ---
@@ -425,7 +448,7 @@ export default {
     }
 
 
-    // Auth check — Access protects this path, so 200 = authenticated, 403 = not
+    // Auth check — the gate above already rejected unauthenticated requests
     if (path === "/api/admin/auth-check" && method === "GET") {
       return json({ authenticated: true });
     }

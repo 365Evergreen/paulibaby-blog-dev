@@ -10,26 +10,36 @@ import MediaLibraryPage from "../pages/MediaLibraryPage/MediaLibraryPage";
 import MediaAdmin from "../components/MediaLibrary/MediaLibrary";
 import AdminPage from "../pages/AdminPage/AdminPage";
 import SinglePostPage from "../pages/SinglePostPage/SinglePostPage";
+import EditorShell from "../layouts/EditorShell";
+import RequireAuth from "../auth/RequireAuth";
+import SignInPage from "../pages/SignInPage/SignInPage";
+
 export function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/dashboard" element={<DashboardPage />}>
-          <Route index element={<DashboardOverview />} />
-          <Route path="posts" element={<PostsPage />} />
-        </Route>
         <Route path="/" element={<AppShell />}>
           <Route index element={<Home />} />
           <Route path="/archive" element={<Archive />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/admin/post-editor" element={<PostEditorPage />} />
-          <Route path="/admin/post-editor/:id" element={<PostEditorPage />} />
-          <Route path="/admin/media-library" element={<MediaLibraryPage />} />
-          <Route path="/admin/media-admin" element={<MediaAdmin />} />
+          <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/posts/:slug" element={<SinglePostPage />} />
+        </Route>
+        <Route element={<RequireAuth />}>
+          <Route element={<EditorShell />}>
+            <Route path="/dashboard" element={<DashboardPage />}>
+              <Route index element={<DashboardOverview />} />
+              <Route path="posts" element={<PostsPage />} />
+            </Route>
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/admin/post-editor" element={<PostEditorPage />} />
+            <Route path="/admin/post-editor/:id" element={<PostEditorPage />} />
+            <Route path="/admin/media-library" element={<MediaLibraryPage />} />
+            <Route path="/admin/media-admin" element={<MediaAdmin />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>
   );
-};
+}
+
 export default AppRouter;
