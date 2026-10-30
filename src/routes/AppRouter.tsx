@@ -17,6 +17,7 @@ import SinglePostPage from "../pages/SinglePostPage/SinglePostPage";
 import EditorShell from "../layouts/EditorShell";
 import RequireAuth from "../auth/RequireAuth";
 import SignInPage from "../pages/SignInPage/SignInPage";
+import PagesPage from "../pages/DashboardPage/PagesPage";
 
 export function AppRouter() {
   return (
@@ -38,6 +39,7 @@ export function AppRouter() {
               <Route path="templates/:id" element={<TemplateEditorPage />} />
               <Route path="users" element={<UsersPage />} />
               <Route path="themes" element={<ThemesPage />} />
+              <Route path="pages" element={<PagesPage />} />
             </Route>
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/admin/post-editor" element={<PostEditorPage />} />
