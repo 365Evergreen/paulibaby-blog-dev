@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Check, Copy, RefreshCw, X } from "lucide-react";
-import { createUser, generatePassword, type AdminUser, type UserRole } from "./UsersPage/usersApi";
-import styles from "./DashboardPage.module.css";
+import { createUser, generatePassword, type AdminUser, type UserRole } from "./usersApi";
+import styles from "../DashboardPage.module.css";
 
 interface Props {
   onClose: () => void;

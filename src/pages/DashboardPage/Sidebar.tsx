@@ -10,7 +10,7 @@ const items = [
   { to: "/admin/media-library", label: "Media", icon: Image },
   { to: "/admin/dashboard/users", label: "Users", icon: Users },
   { to: "/admin/dashboard/themes", label: "Themes", icon: Palette },
-  { to: "/admin", label: "Settings", icon: Settings, end: true },
+  { to: "/admin/dashboard/settings", label: "Settings", icon: Settings, end: true },
 ];
 
 interface Props {
