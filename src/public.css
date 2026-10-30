@@ -196,3 +196,29 @@ a {
 .status-message--error {
   color: var(--danger);
 }
+
+/* Callout blocks from the block editor (editor canvas and published content) */
+[data-callout] {
+  --callout-color: #3b82f6;
+  margin: 1.25rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--callout-color);
+  border-radius: 0 6px 6px 0;
+  background: color-mix(in srgb, var(--callout-color) 12%, transparent);
+}
+
+[data-callout][data-variant="warning"] {
+  --callout-color: #d97706;
+}
+
+[data-callout][data-variant="success"] {
+  --callout-color: #16a34a;
+}
+
+[data-callout] > :first-child {
+  margin-top: 0;
+}
+
+[data-callout] > :last-child {
+  margin-bottom: 0;
+}
