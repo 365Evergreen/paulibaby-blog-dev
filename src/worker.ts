@@ -17,6 +17,7 @@
  * Public routes:
  *   GET  /api/posts        → list published posts
  *   GET  /api/posts/:slug   → get single post
+ *   GET  /api/pages/:slug   → get single published page (slug or numeric id) with its template
  *
  * R2: media lives in UPLOADS (paulibaby-blog-uploads), served at uploads.paulibaby.com.
  */
@@ -73,8 +74,8 @@ interface TemplateSchema {
 
 interface TemplateComponent {
   id: string;
-  type: "hero" | "richText" | "callToAction";
-  props: Record<string, string>;
+  type: string;
+  props: Record<string, unknown>;
 }
 
 interface Template {
@@ -195,7 +196,8 @@ function parseTemplateInput(body: TemplateInput): { value: { name: string; templ
     component &&
     typeof component === "object" &&
     typeof (component as TemplateComponent).id === "string" &&
-    ["hero", "richText", "callToAction"].includes((component as TemplateComponent).type) &&
+    typeof (component as TemplateComponent).type === "string" &&
+    /^[A-Za-z][A-Za-z0-9]{0,63}$/.test((component as TemplateComponent).type) &&
     typeof (component as TemplateComponent).props === "object" &&
     !Array.isArray((component as TemplateComponent).props),
   )) return { error: "Template component configuration is invalid" };
@@ -364,6 +366,20 @@ export default {
     }
 
     // --- Get single post by slug ---
+    const publicPageMatch = path.match(/^\/api\/pages\/([^/]+)$/);
+    if (publicPageMatch && method === "GET") {
+      const key = decodeURIComponent(publicPageMatch[1]);
+      const column = /^\d+$/.test(key) ? "id" : "slug";
+      const page = await env.DB.prepare(`SELECT * FROM pages WHERE ${column} = ? AND published = 1`).bind(key).first<Post>();
+      if (!page) return json({ error: "Not found" }, 404);
+      let template: { id: number; template_type: TemplateType; schema: TemplateSchema } | null = null;
+      if (page.template_id !== null) {
+        const row = await env.DB.prepare("SELECT id, template_type, schema FROM templates WHERE id = ?").bind(page.template_id).first<Template>();
+        if (row) template = { id: row.id, template_type: row.template_type, schema: JSON.parse(row.schema) as TemplateSchema };
+      }
+      return json({ ...formatPostTemplate(page), template });
+    }
+
     const postMatch = path.match(/^\/api\/posts\/([^/]+)$/);
     if (postMatch && method === "GET") {
       const slug = postMatch[1];
