@@ -36,25 +36,21 @@
   ],
 
   // Production/Remote Overrides
-  "env": {
-    "production": {
-      "d1_databases": [
-        {
-          "binding": "paulibaby_blog",
-          "database_name": "paulibaby-blog",
-          "database_id": "d420d8f1-bae9-4ff8-9eb8-7ceed2b2c7a2"
-        }
-      ],
-      "r2_buckets": [
-        {
-          "binding": "paulibaby_blog_content",
-          "bucket_name": "paulibaby-blog-content"
-        },
-        {
-          "binding": "paulibaby_blog_uploads",
-          "bucket_name": "paulibaby-blog-uploads"
-        }
-      ]
-    }
+"env": {
+  "production": {
+    "d1_databases": [
+      {
+        "binding": "DB",
+        "database_name": "paulibaby-blog",
+        "database_id": "d420d8f1-bae9-4ff8-9eb8-7ceed2b2c7a2",
+        "migrations_dir": "migrations"
+      }
+    ],
+    "r2_buckets": [
+      { "binding": "CONTENT", "bucket_name": "paulibaby-blog-content" },
+      { "binding": "UPLOADS", "bucket_name": "paulibaby-blog-uploads" }
+    ]
   }
+}
+
 }

@@ -16,7 +16,6 @@
       {
         "heading": "Posts",
         "links": [
-          { "label": "All posts", "href": "/archive" },
           { "label": "Edit posts", "href": "/admin/post/:id" },
           { "label": "Media library", "href": "/admin/media-library" },
           { "label": "Media admin", "href": "/admin/media-admin" }
@@ -26,8 +25,22 @@
   },
   {
     "id": 2,
-    "title": "Media player",
-    "href": "/media",
+    "title": "Posts",
+    "href": "/archive",
+    "requiresAuth": false,
+    "hasMegaMenu": false
+  },
+  {
+    "id": 3,
+    "title": "Media Library",
+    "href": "/admin/media-library",
+    "requiresAuth": true,
+    "hasMegaMenu": false
+  },
+  {
+    "id": 4,
+    "title": "Sign In",
+    "href": "/sign-in",
     "requiresAuth": false,
     "hasMegaMenu": false
   }
