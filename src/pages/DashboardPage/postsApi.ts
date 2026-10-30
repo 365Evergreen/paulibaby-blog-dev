@@ -1,3 +1,4 @@
+import { apiFetch } from "../../lib/auth";
 // published: 0 = draft, 1 = published, 3 = archived
 export const STATUS = { draft: 0, published: 1, archived: 3 } as const;
 
@@ -27,14 +28,14 @@ async function check(res: Response): Promise<Response> {
 }
 
 export const fetchPosts = async (): Promise<AdminPost[]> =>
-  (await check(await fetch("/api/admin/posts"))).json();
+  (await check(await apiFetch("/api/admin/posts"))).json();
 
 export const fetchCategories = async (): Promise<Category[]> =>
-  (await check(await fetch("/api/admin/categories"))).json();
+  (await check(await apiFetch("/api/admin/categories"))).json();
 
 export const setPostStatus = async (id: number, published: number): Promise<void> => {
   await check(
-    await fetch(`/api/admin/posts/${id}`, {
+    await apiFetch(`/api/admin/posts/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ published }),

@@ -1,3 +1,4 @@
+import { apiFetch } from "../../lib/auth";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import styles from './MediaLibraryPage.module.css'
 import { FileHeadphone, FileVideoCamera, Files, Image, Package, LucideIcon } from "lucide-react";
@@ -147,7 +148,7 @@ export default function AdminMedia() {
   async function loadMedia() {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/media-library");
+      const res = await apiFetch("/api/admin/media-library");
       if (res.status === 403) {
         window.location.reload();
         return;
@@ -179,7 +180,7 @@ export default function AdminMedia() {
       if (description) formData.append("description", description);
       if (tags) formData.append("tags", tags);
 
-      const res = await fetch("/api/admin/media", {
+      const res = await apiFetch("/api/admin/media", {
         method: "POST",
         body: formData,
       });
@@ -263,7 +264,7 @@ export default function AdminMedia() {
   async function handleDelete(r2Key: string) {
     if (!confirm("Delete this file? This removes it from R2 and the database.")) return;
     try {
-      const res = await fetch("/api/admin/media-library", {
+      const res = await apiFetch("/api/admin/media-library", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ r2_key: r2Key }),
