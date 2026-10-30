@@ -17,7 +17,7 @@ import SinglePostPage from "../pages/SinglePostPage/SinglePostPage";
 import EditorShell from "../layouts/EditorShell";
 import RequireAuth from "../auth/RequireAuth";
 import SignInPage from "../pages/SignInPage/SignInPage";
-import PagesPage from "../pages/DashboardPage/PagesPage";
+import PagesPage from "../pages/DashboardPage/Pages/PagesPage";
 
 export function AppRouter() {
   return (

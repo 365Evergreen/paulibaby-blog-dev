@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertCircle, ArrowDown, ArrowUp, Search } from "lucide-react";
 import { STATUS, fetchPages, fmtDate, setPageStatus, toTime, type AdminPage } from "./pagesAPI";
-import styles from "./DashboardPage.module.css";
+import styles from "../DashboardPage.module.css";
 
 type Tab = "all" | "published" | "draft" | "archived";
 type SortKey = "title" | "date";

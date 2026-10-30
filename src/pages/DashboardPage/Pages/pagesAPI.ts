@@ -1,5 +1,5 @@
-import { apiFetch } from "../../lib/auth";
-import { STATUS, fmtDate, toTime } from "./postsApi";
+import { apiFetch } from "../../../lib/auth";
+import { STATUS, fmtDate, toTime } from  "../Posts/postsApi";
 
 export { STATUS, fmtDate, toTime };
 
