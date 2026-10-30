@@ -4,6 +4,8 @@ import type { Editor, JSONContent } from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
+import Link from "@tiptap/extension-link";
+import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
 import { createLowlight, common } from "lowlight";
 import {
@@ -28,7 +30,7 @@ import {
 } from "lucide-react";
 import { Callout } from "./Callout";
 import { Video } from "./tiptap/VideoExtension";
-import { Audio } from "./tiptap/AudioExtension";
+import { Audio } from "./tiptap/AudioExtension";import ImageResize from "tiptap-extension-resize-image";
 import { YoutubeEmbed as YouTube } from "./tiptap/YouTubeExtension/YouTubeExtension";
 import { Iframe } from "./tiptap/iFrameExtension/iFrameExtension";
 import { Accordion } from "./tiptap/AccordionExtension/Accordion";
@@ -37,6 +39,8 @@ import { AccordionContent } from "./tiptap/AccordionExtension/AccordionContent";
 import { Columns } from "./tiptap/ColumnsExtension/Columns";
 import { Column } from "./tiptap/ColumnsExtension/Column";
 import { CodeBlock } from "./tiptap/CodeBlockExtension/CodeBlock";
+import { BlockFocus } from "./BlockFocus";
+import BlockToolbar, { youTubeId } from "./BlockToolbar";
 import proseStyles from "./Prose.module.css";
 import styles from "./BlockEditor.module.css";
 
@@ -50,13 +54,6 @@ const cols = (n: number): JSONContent => ({
     content: [para()],
   })),
 });
-
-const YT = [
-  /youtube\.com\/watch\?v=([\w-]{11})/,
-  /youtu\.be\/([\w-]{11})/,
-  /youtube\.com\/embed\/([\w-]{11})/,
-  /^([\w-]{11})$/,
-];
 
 interface BlockDef {
   label: string;
@@ -153,7 +150,7 @@ const BLOCKS: BlockDef[] = [
     icon: CirclePlay,
     build: () => {
       const input = ask("YouTube URL", "");
-      const id = input && YT.map((r) => input.match(r)?.[1]).find(Boolean);
+      const id = input && youTubeId(input);
       if (input && !id)
         window.alert("Could not find a YouTube video ID in that URL.");
       return id ? { type: "youtube", attrs: { videoId: id } } : null;
@@ -198,6 +195,9 @@ export default function BlockEditor({
     () => window.matchMedia("(min-width: 900px)").matches,
   );
   const fileInput = useRef<HTMLInputElement>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
+  // Position of the image the file picker should replace; null appends a new image.
+  const replaceRef = useRef<number | null>(null);
   const onChangeRef = useRef(onChange);
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -216,6 +216,13 @@ export default function BlockEditor({
       }),
       CodeBlock.configure({ lowlight }),
       Image,
+      ImageResize.configure({
+        inline: true,
+        allowBase64: true,
+        HTMLAttributes: {
+          class: "resizable-image",
+        },
+      }),
       Callout,
       Video,
       Audio,
@@ -229,6 +236,9 @@ export default function BlockEditor({
       Placeholder.configure({
         placeholder: "Start writing, or add a block from the left",
       }),
+      Link.configure({ openOnClick: false, autolink: true }),
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
+      BlockFocus,
     ],
     onUpdate: ({ editor }) => onChangeRef.current(editor.getHTML()),
   });
@@ -256,9 +266,18 @@ export default function BlockEditor({
   async function onFile(files: FileList | null) {
     const file = files?.[0];
     if (!file || !editor || !onUpload) return;
+    const target = replaceRef.current;
+    replaceRef.current = null;
     const src = await onUpload(file);
-    if (src) append(editor, { type: "image", attrs: { src, alt: file.name } });
-    else onError?.("Image upload failed");
+    if (!src) return onError?.("Image upload failed");
+    const existing = target === null ? null : editor.state.doc.nodeAt(target);
+    if (target !== null && existing?.type.name === "image") {
+      editor.view.dispatch(
+        editor.state.tr.setNodeMarkup(target, undefined, { ...existing.attrs, src }),
+      );
+    } else {
+      append(editor, { type: "image", attrs: { src, alt: file.name } });
+    }
   }
 
   return (
@@ -286,7 +305,10 @@ export default function BlockEditor({
                 onClick={() => {
                   if (!editor) return;
                   const node = build({
-                    pickImage: () => fileInput.current?.click(),
+                    pickImage: () => {
+                      replaceRef.current = null;
+                      fileInput.current?.click();
+                    },
                   });
                   if (node) append(editor, node);
                 }}
@@ -308,9 +330,17 @@ export default function BlockEditor({
           }}
         />
         <div className={styles.canvas}>
-          <div className={styles.page}>
+          <div className={styles.page} ref={pageRef}>
             {children}
             <EditorContent editor={editor} className={proseStyles.prose} />
+            <BlockToolbar
+              editor={editor}
+              containerRef={pageRef}
+              onReplaceImage={(pos) => {
+                replaceRef.current = pos;
+                fileInput.current?.click();
+              }}
+            />
           </div>
         </div>
         {aside}

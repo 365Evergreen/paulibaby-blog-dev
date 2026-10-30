@@ -8,7 +8,9 @@
 .blockBtn:hover:not(:disabled) { border-color:#2271b1; color:#2271b1; background:#fff; }
 .blockBtn:disabled { opacity:.5; cursor:not-allowed; }
 .canvas { flex:1; min-width:0; padding:0 16px; }
-.page { max-width:840px; margin:0 auto; padding:2rem 0 6rem; }
+.page { position:relative; max-width:840px; margin:0 auto; padding:2rem 0 6rem; }
+.page :global(.ProseMirror .has-block-focus) { outline:1px solid #3858e9; outline-offset:4px; }
+.page :global(.ProseMirror:not(.ProseMirror-focused) .has-block-focus) { outline-color:transparent; }
 .page :global(.ProseMirror) { outline:none; min-height:40vh; }
 .page :global(.ProseMirror p.is-editor-empty:first-child::before) { content:attr(data-placeholder); float:left; height:0; color:#9a9a9a; pointer-events:none; }
 @media (max-width:899px) {

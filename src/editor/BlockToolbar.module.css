@@ -1,0 +1,27 @@
+.toolbar { position:absolute; z-index:30; display:flex; align-items:stretch; height:48px; background:#fff; border:1px solid #ddd; border-radius:2px; box-shadow:0 2px 8px rgba(0,0,0,.08); color:#1e1e1e; white-space:nowrap; max-width:100%; }
+.hidden { visibility:hidden; pointer-events:none; }
+.group { display:flex; align-items:center; gap:2px; padding:0 6px; border-left:1px solid #ddd; }
+.group:first-child { border-left:0; }
+.anchor { position:relative; display:flex; }
+.btn, .textBtn, .typeIcon { display:inline-flex; align-items:center; justify-content:center; gap:2px; min-width:36px; height:36px; padding:0 6px; border:0; border-radius:2px; background:transparent; color:inherit; font:inherit; font-size:.8125rem; font-weight:600; cursor:pointer; }
+.typeIcon { cursor:default; }
+.textBtn { padding:0 10px; }
+.btn:hover:not(:disabled), .textBtn:hover { background:#f0f0f1; }
+.btn:disabled { opacity:.35; cursor:default; }
+.btnActive { background:#1e1e1e; color:#fff; }
+.btnActive:hover:not(:disabled) { background:#3a3a3a; }
+.moveCol { display:flex; flex-direction:column; justify-content:center; }
+.move { display:grid; place-items:center; width:24px; height:18px; padding:0; border:0; background:transparent; color:inherit; cursor:pointer; }
+.move:hover:not(:disabled) { color:#2271b1; }
+.move:disabled { opacity:.3; cursor:default; }
+.swatch { width:16px; height:16px; border-radius:50%; }
+.popover { position:absolute; top:calc(100% + 6px); left:0; z-index:40; min-width:200px; padding:6px; background:#fff; border:1px solid #ddd; border-radius:2px; box-shadow:0 4px 16px rgba(0,0,0,.14); }
+.field { display:flex; align-items:center; gap:4px; min-width:280px; }
+.field input { flex:1; min-width:0; height:36px; padding:0 8px; border:1px solid #949494; border-radius:2px; font:inherit; font-size:.875rem; }
+.field input:focus { outline:2px solid #3858e9; outline-offset:-1px; border-color:transparent; }
+.menuItem { display:flex; align-items:center; gap:10px; width:100%; padding:8px 10px; border:0; border-radius:2px; background:transparent; color:inherit; font:inherit; font-size:.875rem; text-align:left; cursor:pointer; }
+.menuItem:hover:not(:disabled) { background:#f0f0f1; }
+.menuItem:disabled { opacity:.4; cursor:default; }
+.menuItemActive { font-weight:600; }
+.menuItemDanger { color:#cc1818; }
+.menuCheck { margin-left:auto; }
