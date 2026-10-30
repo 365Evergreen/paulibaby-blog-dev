@@ -16,6 +16,7 @@
       {
         "heading": "Posts",
         "links": [
+          {"label": "Dashboard", "href": "/dashboard"},
           { "label": "Edit posts", "href": "/admin/post/:id" },
           { "label": "Media library", "href": "/admin/media-library" },
           { "label": "Media admin", "href": "/admin/media-admin" }
