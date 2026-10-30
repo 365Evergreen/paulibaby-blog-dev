@@ -1,4 +1,4 @@
-import { apiFetch } from "../../lib/auth";
+import { apiFetch } from "../../../lib/auth";
 // published: 0 = draft, 1 = published, 3 = archived
 export const STATUS = { draft: 0, published: 1, archived: 3 } as const;
 

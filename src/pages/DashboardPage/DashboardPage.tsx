@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
-import { fetchPosts, STATUS, type AdminPost } from "./postsApi";
+import { fetchPosts, STATUS, type AdminPost } from "./Posts/postsApi";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import styles from "./DashboardPage.module.css";

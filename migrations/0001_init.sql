@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS posts (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+
 -- Index for listing by date
 CREATE INDEX IF NOT EXISTS idx_posts_published_date ON posts(published, created_at DESC);
 

@@ -1,6 +1,6 @@
 import { Link, useOutletContext } from "react-router-dom";
 import { CheckCircle2, FileText, FilePen, AlertCircle } from "lucide-react";
-import { STATUS, fmtDate, toTime } from "./postsApi";
+import { STATUS, fmtDate, toTime } from "./Posts/postsApi";
 import type { DashboardContext } from "./DashboardPage";
 import { StatCard } from "./StatCard";
 import styles from "./DashboardPage.module.css";
