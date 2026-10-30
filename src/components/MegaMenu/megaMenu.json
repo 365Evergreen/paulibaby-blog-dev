@@ -29,7 +29,16 @@
     "title": "Posts",
     "href": "/archive",
     "requiresAuth": false,
-    "hasMegaMenu": false
+    "hasMegaMenu": true,
+    "columns": [
+      {
+        "heading": "Categories",
+        "links": [
+          {"label": "All", "href": "/archive"},
+          {"label": "Music ", "href": "/admin/post/create"}
+        ]
+      }
+    ]
   },
   {
     "id": 3,

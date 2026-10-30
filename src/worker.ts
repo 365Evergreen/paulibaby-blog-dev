@@ -1,32 +1,34 @@
 /**
  * paulibaby-blog-dev Worker — Blog API + Admin Panel
  *
- * Routes:
- *   GET  /api/posts          → list published posts (?category=slug1,slug2 to filter)
- *   GET  /api/posts/:slug    → get single post
- *   GET  /api/admin/posts    → list all posts (?category=slug1,slug2 to filter)
- *   GET  /api/admin/posts/:id → get single post by ID
- *   POST /api/admin/posts    → create post (category_ids: number[])
- *   PUT  /api/admin/posts/:id → update post (category_ids: number[])
- *   DELETE /api/admin/posts/:id → delete post
- *   POST /api/admin/upload   → upload image to R2 (UPLOADS bucket → uploads.paulibaby.com)
- *   GET  /api/admin/upload   → list R2 objects
- *   GET  /api/admin/media       → list all media (with D1 metadata)
- *   POST /api/admin/media       → upload to R2 + insert metadata in D1
- *   GET  /api/admin/media/:id   → get single media record
- *   PUT  /api/admin/media/:id    → update media metadata
- *   DELETE /api/admin/media/:id  → delete from R2 + D1
- *   GET  /api/admin/media-library  → list ALL R2 objects (merged with D1 metadata)
- *   DELETE /api/admin/media-library → delete by r2_key (R2 + D1)
- *   GET  /api/admin/categories   → list all categories (flat)
- *   POST /api/admin/categories   → create category
- *   DELETE /api/admin/categories/:id → delete category
+ * Auth routes (public):
+ *   POST /api/auth/login    → email + password → { token, user }
+ *   POST /api/auth/logout   → invalidate current session
+ *   GET  /api/auth/me       → current identity (or { authenticated: false })
+ *   POST /api/auth/setup    → create first admin (only works if no users exist)
  *
- * Auth: /api/admin/* requires Authorization: Bearer <ADMIN_TOKEN> (see accessAuth.ts).
- * R2: media lives in the UPLOADS bucket (paulibaby-blog-uploads), served at uploads.paulibaby.com.
+ * Admin routes (require Bearer session token):
+ *   GET  /api/admin/users       → list users
+ *   POST /api/admin/users       → create user (email, password, role)
+ *   DELETE /api/admin/users/:id → delete user
+ *   ...plus all existing post/media/category endpoints
+ *
+ * Public routes:
+ *   GET  /api/posts        → list published posts
+ *   GET  /api/posts/:slug   → get single post
+ *
+ * R2: media lives in UPLOADS (paulibaby-blog-uploads), served at uploads.paulibaby.com.
  */
 
-import { getIdentity, type AuthEnv } from "./accessAuth";
+import {
+  getIdentity,
+  hashPassword,
+  verifyPassword,
+  createSession,
+  deleteSession,
+  type AuthEnv,
+  type Identity,
+} from "./accessAuth";
 
 export interface Env extends AuthEnv {
   DB: D1Database;
@@ -76,6 +78,13 @@ interface Media {
   updated_at: string;
 }
 
+interface User {
+  id: number;
+  email: string;
+  role: string;
+  created_at: string;
+}
+
 const CORS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
@@ -98,7 +107,6 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-// Fetch all category IDs for a given post
 async function getPostCategoryIds(db: D1Database, postId: number): Promise<number[]> {
   const rows = await db.prepare(
     "SELECT category_id FROM post_categories WHERE post_id = ?"
@@ -106,11 +114,9 @@ async function getPostCategoryIds(db: D1Database, postId: number): Promise<numbe
   return rows.results.map((r: { category_id: any; }) => r.category_id);
 }
 
-// Replace the set of categories on a post (delete all, then insert the new set)
 async function syncPostCategories(db: D1Database, postId: number, categoryIds: number[]): Promise<void> {
   await db.prepare("DELETE FROM post_categories WHERE post_id = ?").bind(postId).run();
   if (categoryIds.length === 0) return;
-  // D1 batch insert
   const stmts = categoryIds.map((catId) =>
     db.prepare("INSERT OR IGNORE INTO post_categories (post_id, category_id) VALUES (?, ?)")
       .bind(postId, catId)
@@ -118,7 +124,6 @@ async function syncPostCategories(db: D1Database, postId: number, categoryIds: n
   await db.batch(stmts);
 }
 
-// Build a WHERE clause fragment for filtering posts by category slugs
 function buildCategoryFilter(categoryParam: string | null): { clause: string; binds: string[] } | null {
   if (!categoryParam) return null;
   const slugs = categoryParam.split(",").map((s) => s.trim()).filter(Boolean);
@@ -130,7 +135,6 @@ function buildCategoryFilter(categoryParam: string | null): { clause: string; bi
   };
 }
 
-// Guess content type from file extension when metadata is missing
 function guessContentType(key: string): string {
   const ext = key.split(".").pop()?.toLowerCase() || "";
   const map: Record<string, string> = {
@@ -152,7 +156,6 @@ function guessContentType(key: string): string {
   return map[ext] || "application/octet-stream";
 }
 
-// Classify a content type + filename into a media type category
 function classifyMediaType(contentType: string, key: string): "audio" | "document" | "image" | "video" | "other" {
   const ct = contentType.toLowerCase();
   const ext = key.split(".").pop()?.toLowerCase() || "";
@@ -175,13 +178,62 @@ export default {
       return new Response(null, { headers: CORS });
     }
 
-    // --- Auth: who am I (works for anonymous visitors too) ---
+    // ===== AUTH ROUTES (public — no token required) =====
+
+    // --- Login: email + password → session token ---
+    if (path === "/api/auth/login" && method === "POST") {
+      const body = await request.json() as { email?: string; password?: string };
+      if (!body.email || !body.password) return json({ error: "Email and password required" }, 400);
+
+      const user = await env.DB.prepare(
+        "SELECT id, email, password_hash, role FROM users WHERE email = ?"
+      ).bind(body.email.toLowerCase()).first<{ id: number; email: string; password_hash: string; role: string }>();
+
+      if (!user) return json({ error: "Invalid credentials" }, 401);
+      const valid = await verifyPassword(body.password, user.password_hash);
+      if (!valid) return json({ error: "Invalid credentials" }, 401);
+
+      const token = await createSession(env.DB, user.id);
+      return json({ token, user: { id: user.id, email: user.email, role: user.role } });
+    }
+
+    // --- Logout: invalidate the current session ---
+    if (path === "/api/auth/logout" && method === "POST") {
+      const auth = request.headers.get("Authorization") || "";
+      if (auth.startsWith("Bearer ")) {
+        await deleteSession(env.DB, auth.slice(7));
+      }
+      return json({ success: true });
+    }
+
+    // --- Who am I? ---
     if (path === "/api/auth/me" && method === "GET") {
       const id = await getIdentity(request, env);
       return json(id ? { authenticated: true, ...id } : { authenticated: false });
     }
 
-    // --- Admin API: every /api/admin/* route requires a valid token (see accessAuth.ts) ---
+    // --- First-run setup: create the first admin (only works if no users exist) ---
+    if (path === "/api/auth/setup" && method === "POST") {
+      const count = await env.DB.prepare("SELECT COUNT(*) as n FROM users").first<{ n: number }>();
+      if (count && count.n > 0) return json({ error: "Setup already complete" }, 403);
+
+      const body = await request.json() as { email?: string; password?: string; role?: string };
+      if (!body.email || !body.password) return json({ error: "Email and password required" }, 400);
+      if (body.password.length < 8) return json({ error: "Password must be at least 8 characters" }, 400);
+
+      const role = body.role === "admin" ? "admin" : "editor";
+      const hash = await hashPassword(body.password);
+      const result = await env.DB.prepare(
+        "INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)"
+      ).bind(body.email.toLowerCase(), hash, role).run();
+
+      const user = await env.DB.prepare("SELECT id, email, role, created_at FROM users WHERE id = ?")
+        .bind(result.meta.last_row_id).first<User>();
+      const token = await createSession(env.DB, user!.id);
+      return json({ token, user }, 201);
+    }
+
+    // ===== ADMIN GATE: every /api/admin/* route requires a valid session =====
     if (path.startsWith("/api/admin/")) {
       const identity = await getIdentity(request, env);
       if (!identity) return json({ error: "Unauthorized" }, 401);
@@ -196,7 +248,9 @@ export default {
       }
     }
 
-    // --- Public API: list published posts ---
+    // ===== PUBLIC API =====
+
+    // --- List published posts ---
     if (path === "/api/posts" && method === "GET") {
       const catFilter = buildCategoryFilter(url.searchParams.get("category"));
       const whereClause = catFilter
@@ -208,7 +262,6 @@ export default {
          ${whereClause}
          ORDER BY p.created_at DESC`
       ).bind(...(catFilter?.binds ?? [])).all();
-      // Attach category_ids to each post
       const postsWithCats = await Promise.all(
         results.results.map(async (p: any) => ({
           ...p,
@@ -218,7 +271,7 @@ export default {
       return json(postsWithCats);
     }
 
-    // --- Public API: get single post by slug ---
+    // --- Get single post by slug ---
     const postMatch = path.match(/^\/api\/posts\/([^/]+)$/);
     if (postMatch && method === "GET") {
       const slug = postMatch[1];
@@ -230,7 +283,51 @@ export default {
       return json(post);
     }
 
-    // --- Admin API: list all posts ---
+    // ===== ADMIN API =====
+
+    // --- User management (admin-only; editors blocked by DELETE gate above for DELETE,
+    //     but we also restrict POST to admins) ---
+    if (path === "/api/admin/users" && method === "GET") {
+      const identity = await getIdentity(request, env);
+      if (identity!.role !== "admin") return json({ error: "Forbidden" }, 403);
+      const results = await env.DB.prepare(
+        "SELECT id, email, role, created_at FROM users ORDER BY created_at ASC"
+      ).all<User>();
+      return json(results.results);
+    }
+
+    if (path === "/api/admin/users" && method === "POST") {
+      const identity = await getIdentity(request, env);
+      if (identity!.role !== "admin") return json({ error: "Forbidden" }, 403);
+      const body = await request.json() as { email?: string; password?: string; role?: string };
+      if (!body.email || !body.password) return json({ error: "Email and password required" }, 400);
+      if (body.password.length < 8) return json({ error: "Password must be at least 8 characters" }, 400);
+
+      const role = body.role === "admin" ? "admin" : "editor";
+      const existing = await env.DB.prepare("SELECT id FROM users WHERE email = ?")
+        .bind(body.email.toLowerCase()).first();
+      if (existing) return json({ error: "Email already registered" }, 409);
+
+      const hash = await hashPassword(body.password);
+      const result = await env.DB.prepare(
+        "INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)"
+      ).bind(body.email.toLowerCase(), hash, role).run();
+      const user = await env.DB.prepare("SELECT id, email, role, created_at FROM users WHERE id = ?")
+        .bind(result.meta.last_row_id).first<User>();
+      return json(user, 201);
+    }
+
+    const userDeleteMatch = path.match(/^\/api\/admin\/users\/(\d+)$/);
+    if (userDeleteMatch && method === "DELETE") {
+      const identity = await getIdentity(request, env);
+      if (identity!.role !== "admin") return json({ error: "Forbidden" }, 403);
+      const id = parseInt(userDeleteMatch[1]);
+      if (id === identity!.id) return json({ error: "Cannot delete yourself" }, 400);
+      await env.DB.prepare("DELETE FROM users WHERE id = ?").bind(id).run();
+      return json({ success: true });
+    }
+
+    // --- Admin: list all posts ---
     if (path === "/api/admin/posts" && method === "GET") {
       const catFilter = buildCategoryFilter(url.searchParams.get("category"));
       const whereClause = catFilter ? `WHERE ${catFilter.clause}` : "";
@@ -246,7 +343,7 @@ export default {
       return json(postsWithCats);
     }
 
-    // --- Admin API: create post ---
+    // --- Admin: create post ---
     if (path === "/api/admin/posts" && method === "POST") {
       const body = await request.json() as Partial<Post> & { category_ids?: number[] };
       const slug = body.slug || slugify(body.title || "untitled");
@@ -268,7 +365,7 @@ export default {
       return json({ id: newId, slug, category_ids: categoryIds }, 201);
     }
 
-    // --- Admin API: get / update / delete post by ID ---
+    // --- Admin: get / update / delete post by ID ---
     const adminPostMatch = path.match(/^\/api\/admin\/posts\/(\d+)$/);
     if (adminPostMatch) {
       const id = parseInt(adminPostMatch[1]);
@@ -295,12 +392,10 @@ export default {
           body.published ? 1 : 0,
           id
         ).run();
-        // Sync categories (empty array clears all)
         await syncPostCategories(env.DB, id, body.category_ids || []);
         return json({ success: true });
       }
 
-      // Status only: 0 = draft, 1 = published, 3 = archived
       if (method === "PATCH") {
         const body = await request.json() as { published?: number };
         if (![0, 1, 3].includes(Number(body.published))) {
@@ -319,7 +414,7 @@ export default {
       }
     }
 
-    // --- Admin API: upload image to R2 (legacy, kept for backwards compat) ---
+    // --- Admin: upload image to R2 (legacy) ---
     if (path === "/api/admin/upload" && method === "POST") {
       const formData = await request.formData();
       const file = formData.get("file") as File;
@@ -336,7 +431,7 @@ export default {
       }, 201);
     }
 
-    // --- Admin API: list R2 objects (legacy) ---
+    // --- Admin: list R2 objects (legacy) ---
     if (path === "/api/admin/upload" && method === "GET") {
       const listed = await env.UPLOADS.list();
       const objects = listed.objects.map((obj: { key: any; size: any; uploaded: { toISOString: () => any; }; }) => ({
@@ -348,9 +443,8 @@ export default {
       return json(objects);
     }
 
-    // --- Admin API: media library ---
+    // --- Admin: media library ---
 
-    // List all media with D1 metadata
     if (path === "/api/admin/media" && method === "GET") {
       const results = await env.DB.prepare(
         "SELECT * FROM media ORDER BY created_at DESC"
@@ -358,7 +452,6 @@ export default {
       return json(results.results);
     }
 
-    // Upload: store file in R2 + insert metadata row in D1
     if (path === "/api/admin/media" && method === "POST") {
       const formData = await request.formData();
       const file = formData.get("file") as File;
@@ -402,7 +495,6 @@ export default {
       return json(media, 201);
     }
 
-    // Get / update / delete single media by ID
     const mediaMatch = path.match(/^\/api\/admin\/media\/(\d+)$/);
     if (mediaMatch) {
       const id = parseInt(mediaMatch[1]);
@@ -441,7 +533,6 @@ export default {
         ).bind(id).first<{ r2_key: string; thumbnail_key: string | null }>();
         if (!media) return json({ error: "Media not found" }, 404);
 
-        // Delete the file from R2
         await env.UPLOADS.delete(media.r2_key);
         if (media.thumbnail_key) {
           try { await env.UPLOADS.delete(media.thumbnail_key); } catch (e) { /* ignore */ }
@@ -451,25 +542,18 @@ export default {
       }
     }
 
-
-    // Auth check — the gate above already rejected unauthenticated requests
     if (path === "/api/admin/auth-check" && method === "GET") {
       return json({ authenticated: true });
     }
 
-
-    // --- Admin API: media library (all R2 objects merged with D1 metadata) ---
-
-    // List ALL objects in the R2 bucket, merged with any D1 metadata
+    // --- Admin: media library (all R2 objects merged with D1 metadata) ---
     if (path === "/api/admin/media-library" && method === "GET") {
-      // Fetch all D1 media rows into a map keyed by r2_key
       const dbRows = await env.DB.prepare("SELECT * FROM media").all<Media>();
       const dbMap = new Map<string, Media>();
       for (const row of dbRows.results) {
         dbMap.set(row.r2_key, row);
       }
 
-      // List ALL objects from R2 (handles pagination)
       const allObjects: { key: string; size: number; uploaded: Date; etag: string; httpMetadata?: { contentType?: string } }[] = [];
       let cursor: string | undefined;
       do {
@@ -486,7 +570,6 @@ export default {
         cursor = listed.truncated ? listed.cursor : undefined;
       } while (cursor);
 
-      // Merge R2 objects with D1 metadata
       const items = allObjects.map((obj) => {
         const dbRow = dbMap.get(obj.key);
         const contentType = dbRow?.content_type || obj.httpMetadata?.contentType || guessContentType(obj.key);
@@ -513,26 +596,20 @@ export default {
         };
       });
 
-      // Sort by uploaded date descending
       items.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
       return json(items);
     }
 
-    // Delete by r2_key (removes from R2 and D1 if present)
     if (path === "/api/admin/media-library" && method === "DELETE") {
       const body = await request.json() as { r2_key: string };
       if (!body.r2_key) return json({ error: "r2_key is required" }, 400);
 
       await env.UPLOADS.delete(body.r2_key);
-      // Also remove from D1 if a row exists
       await env.DB.prepare("DELETE FROM media WHERE r2_key = ?").bind(body.r2_key).run();
       return json({ success: true });
     }
 
-    // --- Admin API: categories ---
-
-    // List all categories (flat — client builds the tree)
+    // --- Admin: categories ---
     if (path === "/api/admin/categories" && method === "GET") {
       const results = await env.DB.prepare(
         "SELECT * FROM categories ORDER BY name ASC"
@@ -540,14 +617,12 @@ export default {
       return json(results.results);
     }
 
-    // Create a category
     if (path === "/api/admin/categories" && method === "POST") {
       const body = await request.json() as { name: string; parent_id?: number | null };
       if (!body.name || !body.name.trim()) {
         return json({ error: "Category name is required" }, 400);
       }
       const slug = slugify(body.name);
-      // Ensure slug uniqueness
       const existing = await env.DB.prepare("SELECT id FROM categories WHERE slug = ?")
         .bind(slug).first();
       if (existing) {
@@ -565,16 +640,14 @@ export default {
       return json(category, 201);
     }
 
-    // Delete a category
     const categoryMatch = path.match(/^\/api\/admin\/categories\/(\d+)$/);
     if (categoryMatch && method === "DELETE") {
       const catId = parseInt(categoryMatch[1]);
-      // Junction table ON DELETE CASCADE removes the associations automatically
       await env.DB.prepare("DELETE FROM categories WHERE id = ?").bind(catId).run();
       return json({ success: true });
     }
 
-    // --- Fallback: serve static assets (SPA) ---
+    // ===== Fallback: serve static assets (SPA) =====
     return env.ASSETS.fetch(request);
   },
 };
