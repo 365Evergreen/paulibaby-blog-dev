@@ -7,24 +7,6 @@
     "hasMegaMenu": false
   },
   {
-    "id": 1,
-    "title": "Admin",
-    "href": "/admin",
-    "requiresAuth": true,
-    "hasMegaMenu": true,
-    "columns": [
-      {
-        "heading": "Posts",
-        "links": [
-          {"label": "Dashboard", "href": "/admin/dashboard"},
-          { "label": "Edit posts", "href": "/admin/post/:id" },
-          { "label": "Media library", "href": "/admin/media-library" },
-          { "label": "Media admin", "href": "/admin/media-admin" }
-        ]
-      }
-    ]
-  },
-  {
     "id": 2,
     "title": "Posts",
     "href": "/archive",
@@ -34,24 +16,43 @@
       {
         "heading": "Categories",
         "links": [
-          {"label": "All", "href": "/archive"},
-          {"label": "Music ", "href": "/admin/post/create"}
+          { "label": "All", "href": "/archive" },
+          { "label": "Music ", "href": "/admin/post/create" }
         ]
       }
     ]
   },
   {
-    "id": 3,
-    "title": "Media Library",
-    "href": "/admin/media-library",
+    "id": 1,
+    "title": "Admin",
+    "href": "/admin",
     "requiresAuth": true,
-    "hasMegaMenu": false
+    "hasMegaMenu": true,
+    "columns": [
+      {
+        "heading": "Posts",
+        "links": [
+          { "label": "Dashboard", "href": "admin/dashboard" },
+          { "label": "Edit posts", "href": "/admin/post/:id" },
+          { "label": "Media library", "href": "/admin/media-library" },
+          { "label": "Media admin", "href": "/admin/media-admin" }
+        ]
+      },
+      {
+        "heading": "Pages",
+        "links": [
+          { "label": "Dashboard", "href": "admin/dashboard" },
+          { "label": "Edit posts", "href": "/admin/post/:id" },
+          { "label": "Media library", "href": "/admin/media-library" },
+          { "label": "Media admin", "href": "/admin/media-admin" }
+        ]
+      }
+    ]
   },
   {
     "id": 4,
     "title": "Sign In",
     "href": "/sign-in",
-    "requiresAuth": false,
     "hasMegaMenu": false
   }
 ]

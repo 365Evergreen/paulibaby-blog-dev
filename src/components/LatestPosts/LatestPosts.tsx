@@ -36,7 +36,7 @@ function LeadCard({ post }: { post: Post }) {
  const typeLabel = post.type?.toUpperCase() ?? ""
   return (
     <article className={styles.leadCard} data-node-id="4:376">
-      <a href={`/blog/${post.slug}`} className={styles.imageLink}>
+      <a href={`/posts/${post.slug}`} className={styles.imageLink}>
         <div className={styles.leadImageWrap} data-node-id="4:377">
           {post.cover_image
             ? <img src={post.cover_image} alt={post.title} className={styles.image} loading="eager" />
@@ -47,7 +47,7 @@ function LeadCard({ post }: { post: Post }) {
       </a>
       <div className={styles.postDetails} data-node-id="4:382">
         <p className={styles.title} data-node-id="4:383">
-          <a href={`/blog/${post.slug}`} className={styles.titleLink}>{post.title}</a>
+          <a href={`/posts/${post.slug}`} className={styles.titleLink}>{post.title}</a>
         </p>
        <p className={styles.postExcerpt}> {truncateText(post.excerpt, 200)}</p>
 
@@ -65,7 +65,7 @@ function SecondaryCard({ post }: { post: Post }) {
 const typeLabel = post.type?.toUpperCase() ?? ""
   return (
     <article className={styles.secondaryCard} data-node-id="4:393">
-      <a href={`/blog/${post.slug}`} className={styles.imageLink}>
+      <a href={`/posts/${post.slug}`} className={styles.imageLink}>
         <div className={styles.secondaryImageWrap} data-node-id="4:394">
           {post.cover_image
             ? <img src={post.cover_image} alt={post.title} className={styles.image} loading="lazy" />
@@ -76,7 +76,7 @@ const typeLabel = post.type?.toUpperCase() ?? ""
       </a>
       <div className={styles.postDetails} data-node-id="4:399">
         <p className={styles.title} data-node-id="4:400">
-          <a href={`/blog/${post.slug}`} className={styles.titleLink}>{post.title}</a>
+          <a href={`/posts/${post.slug}`} className={styles.titleLink}>{post.title}</a>
         </p>
         <p className={styles.metaLine} data-node-id="4:401">
           {typeLabel} | {formatLong(post.created_at)}
