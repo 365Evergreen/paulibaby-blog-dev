@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { api, formatDate, type PostMeta } from "../api";
-import styles from "./Public.module.css";
 
 export function Home() {
   const [posts, setPosts] = useState<PostMeta[] | null>(null);
@@ -11,21 +10,21 @@ export function Home() {
     api.posts().then((r) => setPosts(r.posts), (e: Error) => setError(e.message));
   }, []);
 
-  if (error) return <p className={styles.error}>{error}</p>;
-  if (!posts) return <p className={styles.status}>Loading…</p>;
+  if (error) return <p className="status-message status-message--error">{error}</p>;
+  if (!posts) return <p className="status-message">Loading…</p>;
 
   return (
     <>
-      <h1>Latest posts</h1>
-      {posts.length === 0 && <p className={styles.status}>No posts yet.</p>}
-      <ul className={styles.list}>
+      <h1 className="page-title">Latest posts</h1>
+      {posts.length === 0 && <p className="status-message">No posts yet.</p>}
+      <ul className="post-list">
         {posts.map((p) => (
-          <li key={p.id} className={styles.item}>
-            <h2>
+          <li key={p.id} className="post-card">
+            <h2 className="post-card__title">
               <Link to={`/posts/${p.slug}`}>{p.title}</Link>
             </h2>
-            <p className={styles.meta}>{formatDate(p.published_at)}</p>
-            {p.excerpt && <p className={styles.excerpt}>{p.excerpt}</p>}
+            <p className="post-meta">{formatDate(p.published_at)}</p>
+            {p.excerpt && <p className="post-card__excerpt">{p.excerpt}</p>}
           </li>
         ))}
       </ul>
