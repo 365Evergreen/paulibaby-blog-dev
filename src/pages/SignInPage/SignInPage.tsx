@@ -5,7 +5,7 @@ import styles from "./SignInPage.module.css";
 
 export default function SignInPage() {
   const [params] = useSearchParams();
-  const raw = params.get("redirect") ?? "/dashboard";
+  const raw = params.get("redirect") ?? "admin/dashboard";
   const redirect = raw.startsWith("/") && !raw.startsWith("//") && !raw.includes("\\") ? raw : "/dashboard";
   const [me, setMe] = useState<Me | null>(null);
 

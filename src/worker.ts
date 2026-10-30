@@ -1,6 +1,6 @@
 /**
- * paulibaby-blog Worker — Blog API + Admin Panel
- * 
+ * paulibaby-blog-dev Worker — Blog API + Admin Panel
+ *
  * Routes:
  *   GET  /api/posts          → list published posts (?category=slug1,slug2 to filter)
  *   GET  /api/posts/:slug    → get single post
@@ -9,7 +9,7 @@
  *   POST /api/admin/posts    → create post (category_ids: number[])
  *   PUT  /api/admin/posts/:id → update post (category_ids: number[])
  *   DELETE /api/admin/posts/:id → delete post
- *   POST /api/admin/upload   → upload image to R2
+ *   POST /api/admin/upload   → upload image to R2 (UPLOADS bucket → uploads.paulibaby.com)
  *   GET  /api/admin/upload   → list R2 objects
  *   GET  /api/admin/media       → list all media (with D1 metadata)
  *   POST /api/admin/media       → upload to R2 + insert metadata in D1
@@ -21,13 +21,17 @@
  *   GET  /api/admin/categories   → list all categories (flat)
  *   POST /api/admin/categories   → create category
  *   DELETE /api/admin/categories/:id → delete category
+ *
+ * Auth: /api/admin/* requires Authorization: Bearer <ADMIN_TOKEN> (see accessAuth.ts).
+ * R2: media lives in the UPLOADS bucket (paulibaby-blog-uploads), served at uploads.paulibaby.com.
  */
 
 import { getIdentity, type AuthEnv } from "./accessAuth";
 
 export interface Env extends AuthEnv {
   DB: D1Database;
-  BUCKET: R2Bucket;
+  UPLOADS: R2Bucket;
+  CONTENT: R2Bucket;
   ASSETS: Fetcher;
 }
 
@@ -75,7 +79,7 @@ interface Media {
 const CORS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
 function json(data: unknown, status = 200): Response {
@@ -177,14 +181,14 @@ export default {
       return json(id ? { authenticated: true, ...id } : { authenticated: false });
     }
 
-    // --- Admin API: every /api/admin/* route requires a valid Access session with a role ---
+    // --- Admin API: every /api/admin/* route requires a valid token (see accessAuth.ts) ---
     if (path.startsWith("/api/admin/")) {
       const identity = await getIdentity(request, env);
       if (!identity) return json({ error: "Unauthorized" }, 401);
       // Editors can create and edit content but not permanently delete anything.
       if (identity.role === "editor" && method === "DELETE") return json({ error: "Forbidden" }, 403);
 
-      // Sign-in entry point: Access challenges this path, then we send the user on to the app.
+      // Sign-in entry point: send the user on to the app.
       if (path === "/api/admin/login" && method === "GET") {
         const to = url.searchParams.get("redirect") ?? "/dashboard";
         const safe = to.startsWith("/") && !to.startsWith("//") && !to.includes("\\") ? to : "/dashboard";
@@ -322,24 +326,24 @@ export default {
       if (!file) return json({ error: "No file provided" }, 400);
 
       const key = `${Date.now()}-${file.name}`;
-      await env.BUCKET.put(key, file.stream(), {
+      await env.UPLOADS.put(key, file.stream(), {
         httpMetadata: { contentType: file.type },
       });
 
       return json({
         key,
-        url: `https://media.paulibaby.com/${key}`,
+        url: `https://uploads.paulibaby.com/${key}`,
       }, 201);
     }
 
     // --- Admin API: list R2 objects (legacy) ---
     if (path === "/api/admin/upload" && method === "GET") {
-      const listed = await env.BUCKET.list();
+      const listed = await env.UPLOADS.list();
       const objects = listed.objects.map((obj: { key: any; size: any; uploaded: { toISOString: () => any; }; }) => ({
         key: obj.key,
         size: obj.size,
         uploaded: obj.uploaded.toISOString(),
-        url: `https://media.paulibaby.com/${obj.key}`,
+        url: `https://uploads.paulibaby.com/${obj.key}`,
       }));
       return json(objects);
     }
@@ -366,7 +370,7 @@ export default {
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
       const key = `${Date.now()}-${safeName}`;
 
-      await env.BUCKET.put(key, file.stream(), {
+      await env.UPLOADS.put(key, file.stream(), {
         httpMetadata: { contentType: file.type },
       });
 
@@ -438,9 +442,9 @@ export default {
         if (!media) return json({ error: "Media not found" }, 404);
 
         // Delete the file from R2
-        await env.BUCKET.delete(media.r2_key);
+        await env.UPLOADS.delete(media.r2_key);
         if (media.thumbnail_key) {
-          try { await env.BUCKET.delete(media.thumbnail_key); } catch (e) { /* ignore */ }
+          try { await env.UPLOADS.delete(media.thumbnail_key); } catch (e) { /* ignore */ }
         }
         await env.DB.prepare("DELETE FROM media WHERE id = ?").bind(id).run();
         return json({ success: true });
@@ -469,7 +473,7 @@ export default {
       const allObjects: { key: string; size: number; uploaded: Date; etag: string; httpMetadata?: { contentType?: string } }[] = [];
       let cursor: string | undefined;
       do {
-        const listed = await env.BUCKET.list({ cursor });
+        const listed = await env.UPLOADS.list({ cursor });
         for (const obj of listed.objects) {
           allObjects.push({
             key: obj.key,
@@ -505,7 +509,7 @@ export default {
           thumbnail_key: dbRow?.thumbnail_key ?? "",
           created_at: dbRow?.created_at ?? obj.uploaded.toISOString(),
           updated_at: dbRow?.updated_at ?? "",
-          url: `https://media.paulibaby.com/${obj.key}`,
+          url: `https://uploads.paulibaby.com/${obj.key}`,
         };
       });
 
@@ -520,7 +524,7 @@ export default {
       const body = await request.json() as { r2_key: string };
       if (!body.r2_key) return json({ error: "r2_key is required" }, 400);
 
-      await env.BUCKET.delete(body.r2_key);
+      await env.UPLOADS.delete(body.r2_key);
       // Also remove from D1 if a row exists
       await env.DB.prepare("DELETE FROM media WHERE r2_key = ?").bind(body.r2_key).run();
       return json({ success: true });

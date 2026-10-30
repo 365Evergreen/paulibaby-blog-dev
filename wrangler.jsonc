@@ -15,14 +15,7 @@
   },
   "upload_source_maps": true,
 
-  // Cloudflare Access: set these to your Zero Trust team domain, the Access
-  // application's AUD tag, and the emails allowed in each role.
-  "vars": {
-    "TEAM_DOMAIN": "",
-    "POLICY_AUD": "",
-    "ADMIN_EMAILS": "",
-    "EDITOR_EMAILS": ""
-  },
+
   
   // Default Environment (Local / Development)
   "d1_databases": [
