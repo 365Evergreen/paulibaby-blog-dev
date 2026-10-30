@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import TipTapEditor from "../../editor/BlockEditor";
+import { ExternalLink, PanelRight, Plus, Redo2, Undo2 } from "lucide-react";
 import styles from "./PostEditorPage.module.css";
 
 type Post = {
@@ -60,7 +61,6 @@ function flattenCategoryTree(
 
 export default function PostEditorPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const isNew = !id;
 
   const [editing, setEditing] = useState<Post>({
@@ -119,13 +119,13 @@ export default function PostEditorPage() {
     setLoading(false);
   }
 
-  async function savePost() {
+  async function savePost(published: boolean = Boolean(editing.published)) {
     setSaving(true);
     setMessage("");
 
     const payload = {
       ...editing,
-      published: editing.published ? 1 : 0,
+      published: published ? 1 : 0,
     };
 
     try {
@@ -144,7 +144,7 @@ export default function PostEditorPage() {
         });
         const created = await res.json();
         if (created.id) {
-          setEditing({ ...editing, id: created.id });
+          setEditing((cur) => ({ ...cur, id: created.id, slug: created.slug ?? cur.slug }));
         }
       }
 
@@ -154,7 +154,8 @@ export default function PostEditorPage() {
       }
 
       if (res.ok) {
-        setMessage("Saved successfully!");
+        setEditing((cur) => ({ ...cur, published }));
+        setMessage(published ? "Published!" : "Draft saved.");
       } else {
         setMessage("Error saving post.");
       }
@@ -162,6 +163,12 @@ export default function PostEditorPage() {
       setMessage("Network error.");
     }
     setSaving(false);
+    setTimeout(() => setMessage(""), 3000);
+  }
+
+  function previewPost() {
+    if (editing.published && editing.slug) window.open(`/posts/${encodeURIComponent(editing.slug)}`, "_blank", "noopener");
+    else setMessage("Publish the post to preview it.");
     setTimeout(() => setMessage(""), 3000);
   }
 
@@ -254,44 +261,6 @@ export default function PostEditorPage() {
     return (
 
     <div className={styles.editorPage}>
-      {/* Top bar */}
-      <header className={styles.topbar}>
-        <div className={styles.topbarLeft}>
-          <button
-            onClick={() => navigate("/admin")}
-            className={styles.btnSecondary}
-          >
-            ← Back
-          </button>
-          <span
-            className={`${styles.badge} ${
-              editing.published ? styles.badgePublished : styles.badgeDraft
-            }`}
-          >
-            {editing.published ? "Published" : "Draft"}
-          </span>
-        </div>
-        <div className={styles.topbarRight}>
-          {message && <span className={styles.message}>{message}</span>}
-          <button
-            onClick={() => setDrawerOpen((o) => !o)}
-            className={styles.btnSecondary}
-            aria-expanded={drawerOpen}
-            aria-pressed={drawerOpen}
-            title={drawerOpen ? "Hide settings" : "Show settings"}
-          >
-            {drawerOpen ? "✕" : "⚙"} Post Settings
-          </button>
-          <button
-            onClick={savePost}
-            disabled={saving}
-            className={styles.btnPrimary}
-          >
-            {saving ? "Saving…" : "Save"}
-          </button>
-        </div>
-      </header>
-
       {/* Block drawer + canvas + settings panel */}
       <div className={styles.editorBody}>
       <TipTapEditor
@@ -299,16 +268,58 @@ export default function PostEditorPage() {
         onChange={(html) => setEditing((cur) => ({ ...cur, body: html }))}
         onUpload={uploadImage}
         onError={setMessage}
-      >
-        <input
-          type="text"
-          value={editing.title}
-          onChange={(e) => setEditing((cur) => ({ ...cur, title: e.target.value }))}
-          placeholder="Add title"
-          className={styles.titleInput}
-        />
-      </TipTapEditor>
-
+        topbar={({ editor, blocksOpen, toggleBlocks }) => (
+          <header className={styles.topbar}>
+            <div className={styles.topbarLeft}>
+              <button
+                className={`${styles.iconBtn} ${styles.iconBtnPrimary}`}
+                onClick={toggleBlocks}
+                aria-pressed={blocksOpen}
+                aria-label={blocksOpen ? "Close block drawer" : "Open block drawer"}
+                title="Toggle blocks"
+              >
+                <Plus size={18} />
+              </button>
+              <button className={styles.iconBtn} onClick={() => editor?.chain().focus().undo().run()} disabled={!editor?.can().undo()} aria-label="Undo" title="Undo">
+                <Undo2 size={18} />
+              </button>
+              <button className={styles.iconBtn} onClick={() => editor?.chain().focus().redo().run()} disabled={!editor?.can().redo()} aria-label="Redo" title="Redo">
+                <Redo2 size={18} />
+              </button>
+            </div>
+            <input
+              type="text"
+              value={editing.title}
+              onChange={(e) => setEditing((cur) => ({ ...cur, title: e.target.value }))}
+              placeholder="Add title"
+              aria-label="Post title"
+              className={styles.topbarTitle}
+            />
+            <div className={styles.topbarRight}>
+              {message && <span className={styles.message}>{message}</span>}
+              <button className={styles.btnSecondary} onClick={() => savePost(false)} disabled={saving}>
+                Save draft
+              </button>
+              <button className={styles.btnSecondary} onClick={previewPost} title="Open the published post in a new tab">
+                <ExternalLink size={14} /> Preview
+              </button>
+              <button className={styles.btnPrimary} onClick={() => savePost(true)} disabled={saving}>
+                {saving ? "Saving…" : editing.published ? "Update" : "Publish"}
+              </button>
+              <button
+                className={`${styles.iconBtn} ${drawerOpen ? styles.iconBtnActive : ""}`}
+                onClick={() => setDrawerOpen((o) => !o)}
+                aria-pressed={drawerOpen}
+                aria-label={drawerOpen ? "Hide settings" : "Show settings"}
+                title={drawerOpen ? "Hide settings" : "Show settings"}
+              >
+                <PanelRight size={18} />
+              </button>
+            </div>
+          </header>
+        )}
+        aside={
+          <>
       {/* Settings drawer */}
       {drawerOpen && (
         <>
@@ -474,6 +485,10 @@ export default function PostEditorPage() {
           </aside>
         </>
       )}
+          </>
+        }
+      />
+
       </div>
     </div>
   );
