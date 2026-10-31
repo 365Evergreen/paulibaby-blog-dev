@@ -72,7 +72,7 @@ export default function LatestPosts({
       return post.categories[0].slug
     }
 
-    return post.type
+    return post.type ?? "article"
   }
 
   const getCategoryClass = (post: Post): string => {

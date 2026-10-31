@@ -18,8 +18,8 @@ const HomePage = () => {
       </div> */}
       <section className={styles.section}>
         <div className={styles.latestPosts}>
-          <LatestPosts />
-          {/* <VideoPlayer /> */}
+      <LatestPosts />
+      {/*         <VideoPlayer /> */}
         </div>
       </section>
     </main>
