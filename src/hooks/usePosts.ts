@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 
 export type PostType = "article" | "audio" | "video"
 
@@ -12,7 +12,11 @@ export interface Post {
   type: PostType
   duration: string | null
   created_at: string
-  categories?: { id: number; name: string; slug: string }[]
+  categories?: {
+    id: number
+    name: string
+    slug: string
+  }[]
 }
 
 export interface PostDetail extends Post {
@@ -21,78 +25,202 @@ export interface PostDetail extends Post {
 
 export function formatDate(iso: string): string {
   const d = new Date(iso)
+
   const dd = String(d.getDate()).padStart(2, "0")
   const mm = String(d.getMonth() + 1).padStart(2, "0")
   const yy = String(d.getFullYear()).slice(2)
+
   return `${dd}/${mm}/${yy}`
 }
 
-async function fetchPosts(type?: PostType, limit = 50, category?: string): Promise<Post[]> {
+async function fetchPosts(
+  type?: PostType,
+  limit = 50,
+  category?: string,
+  signal?: AbortSignal
+): Promise<Post[]> {
   const params = new URLSearchParams()
-  if (type) params.set("type", type)
+
+  if (type) {
+    params.set("type", type)
+  }
+
   params.set("limit", String(limit))
-  if (category) params.set("category", category)
 
-  // Try the Cloudflare Worker first (works in production)
-  try {
-    const workerRes = await fetch(`/api/posts?${params}`, { signal: AbortSignal.timeout(3000) })
-    if (workerRes.ok) {
-      const data = await workerRes.json()
-      // If the worker returned HTML (SPA fallback), it's not available
-      if (Array.isArray(data)) return data as Post[]
-    }
-  } catch {
-    // Worker not available — no fallback to Supabase
+  if (category) {
+    params.set("category", category)
   }
 
-  // No Supabase fallback — return empty array if Worker unavailable
-  return []
-}
-
-async function fetchPost(slug: string): Promise<PostDetail | null> {
   try {
-    const workerRes = await fetch(`/api/posts/${slug}`, { signal: AbortSignal.timeout(3000) })
-    if (workerRes.ok) {
-      const data = await workerRes.json()
-      if (data && typeof data === "object" && "id" in data) return data as PostDetail
-    }
-  } catch {
-    // Worker unavailable — no fallback
-  }
+    const workerRes = await fetch(`/api/posts?${params.toString()}`, {
+      signal,
+    })
 
-  // No Supabase fallback — return null
-  return null
+    if (!workerRes.ok) {
+      throw new Error(
+        `Failed to fetch posts: ${workerRes.status} ${workerRes.statusText}`
+      )
+    }
+
+    const data: unknown = await workerRes.json()
+
+    if (!Array.isArray(data)) {
+      throw new Error("Invalid posts response")
+    }
+
+    return data as Post[]
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw error
+    }
+
+    throw error instanceof Error
+      ? error
+      : new Error("Unable to fetch posts")
+  }
 }
 
-export function usePosts(type?: PostType, limit = 50, category?: string) {
+async function fetchPost(
+  slug: string,
+  signal?: AbortSignal
+): Promise<PostDetail | null> {
+  try {
+    const workerRes = await fetch(`/api/posts/${slug}`, {
+      signal,
+    })
+
+    if (workerRes.status === 404) {
+      return null
+    }
+
+    if (!workerRes.ok) {
+      throw new Error(
+        `Failed to fetch post: ${workerRes.status} ${workerRes.statusText}`
+      )
+    }
+
+    const data: unknown = await workerRes.json()
+
+    if (
+      data &&
+      typeof data === "object" &&
+      "id" in data
+    ) {
+      return data as PostDetail
+    }
+
+    return null
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw error
+    }
+
+    throw error instanceof Error
+      ? error
+      : new Error("Unable to fetch post")
+  }
+}
+
+export function usePosts(
+  type?: PostType,
+  limit = 50,
+  category?: string
+) {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    setLoading(true)
-    setError(null)
-    fetchPosts(type, limit, category)
-      .then((data) => { setPosts(data); setLoading(false) })
-      .catch((e: Error) => { setError(e.message); setLoading(false) })
+    const controller = new AbortController()
+
+    fetchPosts(
+      type,
+      limit,
+      category,
+      controller.signal
+    )
+      .then((data) => {
+        if (controller.signal.aborted) {
+          return
+        }
+
+        setPosts(data)
+        setError(null)
+        setLoading(false)
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) {
+          return
+        }
+
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Unable to fetch posts"
+
+        setError(message)
+        setLoading(false)
+      })
+
+    return () => {
+      controller.abort()
+    }
   }, [type, limit, category])
 
-  return { posts, loading, error }
+  return {
+    posts,
+    loading,
+    error,
+  }
 }
 
 export function usePost(slug: string) {
   const [post, setPost] = useState<PostDetail | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(Boolean(slug))
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!slug) return
-    setLoading(true)
-    setError(null)
-    fetchPost(slug)
-      .then((data) => { setPost(data); setLoading(false) })
-      .catch((e: Error) => { setError(e.message); setLoading(false) })
+    if (!slug) {
+      return
+    }
+
+    const controller = new AbortController()
+
+    fetchPost(
+      slug,
+      controller.signal
+    )
+      .then((data) => {
+        if (controller.signal.aborted) {
+          return
+        }
+
+        setPost(data)
+        setError(null)
+        setLoading(false)
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) {
+          return
+        }
+
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Unable to fetch post"
+
+        setError(message)
+        setLoading(false)
+      })
+
+    return () => {
+      controller.abort()
+    }
   }, [slug])
 
-  return { post, loading, error }
+  return {
+    post,
+    loading,
+    error,
+  }
 }

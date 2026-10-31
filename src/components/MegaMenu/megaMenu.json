@@ -9,7 +9,7 @@
   {
     "id": 2,
     "title": "Music",
-    "href": "/archive",
+    "href": "/archive?category=music",
     "requiresAuth": false,
     "hasMegaMenu": true,
     "columns": [
@@ -31,14 +31,14 @@
   {
     "id": 3,
     "title": "Video",
-    "href": "/archive",
+    "href": "/archive?category=video",
     "requiresAuth": false,
     "hasMegaMenu": false
   },
   {
     "id": 5,
     "title": "Radio and podcasts",
-    "href": "/archive",
+    "href": "/archive?category=radio-and-podcasts",
     "requiresAuth": false,
     "hasMegaMenu": false
   },

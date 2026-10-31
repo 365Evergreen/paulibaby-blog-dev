@@ -1,202 +1,270 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { usePosts, type Post } from "../../hooks/usePosts"
+import {
+  usePosts,
+  formatDate,
+  type Post,
+} from "../../hooks/usePosts"
 import styles from "./LatestPosts.module.css"
 
-const INITIAL = 5    // 2 lead + 3 secondary visible initially
-const PAGE_SIZE = 10
-
-/** Helper to truncate text to 150 characters and append an ellipsis */
-function truncateText(text: string | undefined, maxLength = 250): string {
-  if (!text) return ""
-  if (text.length <= maxLength) return text
-  return text.substring(0, maxLength) + "..."
-}
-
-
-/** "DD MM YYYY" format matching the design's meta line */
-function formatLong(raw: string): string {
-  const d = new Date(raw.replace(" ", "T"))
-  if (isNaN(d.getTime())) return raw
-  const dd = String(d.getDate()).padStart(2, "0")
-  const mm = String(d.getMonth() + 1).padStart(2, "0")
-  const yyyy = d.getFullYear()
-  return `${dd} ${mm} ${yyyy}`
-}
-
-function VideoIndicator() {
-  return (
-    <div className={styles.videoIndicator} aria-hidden>
-      <img src="/video-indicator.svg" alt="" width={26} height={22} />
-    </div>
-  )
-}
-
-/** Large lead card — full column width, tall image */
-function LeadCard({ post, navigate }: { post: Post; navigate: ReturnType<typeof useNavigate> }) {
-  const typeLabel = post.type?.toUpperCase() ?? ""
-  const primaryCategory = post.categories?.[0]
-  return (
-    <article className={styles.leadCard} data-node-id="4:376">
-      <a href={`/posts/${post.category_slug || "uncategorised"}/${post.slug}`} className={styles.imageLink}>
-        <div className={styles.leadImageWrap} data-node-id="4:377">
-          {post.cover_image
-            ? <img src={post.cover_image} alt={post.title} className={styles.image} loading="eager" />
-            : <div className={styles.imagePlaceholder} />
-          }
-          {(post.type === "video" || post.type === "audio") && <VideoIndicator />}
-        </div>
-      </a>
-      <div className={styles.postDetails} data-node-id="4:382">
-        <p className={styles.title} data-node-id="4:383">
-          <a href={`/posts/${post.category_slug || "uncategorised"}/${post.slug}`} className={styles.titleLink}>{post.title}</a>
-        </p>  <p className={styles.metaLine} data-node-id="4:384">
-            {typeLabel} | {formatLong(post.created_at)}
-          </p>
-        <p className={styles.postExcerpt}> {truncateText(post.excerpt, 200)}</p>
-        
-        <div className={styles.metaRow}>
-        <button className={styles.viewMoreLink} onClick={() => navigate({pathname: `/posts/${post.category_slug || "uncategorised"}/${post.slug}`})}>
-         Read here
-        </button>
-          {primaryCategory && (
-            <button
-              className={styles.categoryPill}
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                navigate(`/archive?category=${encodeURIComponent(primaryCategory.slug)}`)
-              }}
-              title={`View all posts in ${primaryCategory.name}`}
-            >
-              {primaryCategory.name}
-            </button>
-          )}
-        </div>
-      </div>
-    </article>
-  )
-}
-
-/** Smaller secondary card — 4-col grid row */
-function SecondaryCard({ post, navigate }: { post: Post; navigate: ReturnType<typeof useNavigate> }) {
-  const typeLabel = post.type?.toUpperCase() ?? ""
-  const primaryCategory = post.categories?.[0]
-  return (
-    <article className={styles.secondaryCard} data-node-id="4:393">
-      <a href={`/posts/${post.category_slug || "uncategorised"}/${post.slug}`} className={styles.imageLink}>
-        <div className={styles.secondaryImageWrap} data-node-id="4:394">
-          {post.cover_image
-            ? <img src={post.cover_image} alt={post.title} className={styles.image} loading="lazy" />
-            : <div className={styles.imagePlaceholder} />
-          }
-          {(post.type === "video" || post.type === "audio") && <VideoIndicator />}
-        </div>
-      </a>
-      <div className={styles.postDetails} data-node-id="4:399">
-        <p className={styles.title} data-node-id="4:400">
-          <a href={`/posts/${post.category_slug || "uncategorised"}/${post.slug}`} className={styles.titleLink}>{post.title}</a>
-        </p>
-        <div className={styles.metaRow}>
-          <p className={styles.metaLine} data-node-id="4:401">
-            {typeLabel} | {formatLong(post.created_at)}
-          </p>
-          {primaryCategory && (
-            <button
-              className={styles.categoryPill}
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                navigate(`/archive?category=${encodeURIComponent(primaryCategory.slug)}`)
-              }}
-              title={`View all posts in ${primaryCategory.name}`}
-            >
-              {primaryCategory.name}
-            </button>
-          )}
-        </div>
-      </div>
-    </article>
-  )
-}
-
-function Skeleton() {
-  return (
-    <section className={styles.section}>
-      <p className={styles.sectionHeading}>ARTICLES</p>
-      <div className={styles.leadRow}>
-        <div className={styles.skeletonLead} />
-        <div className={styles.skeletonLead} />
-      </div>
-      <div className={styles.secondaryRow}>
-        {[0, 1, 2, 3].map((i) => <div key={i} className={styles.skeletonSecondary} />)}
-      </div>
-    </section>
-  )
-}
-
-export default function LatestPosts({ category }: { category?: string }) {
+const LatestPosts = () => {
   const navigate = useNavigate()
-  const { posts, loading, error } = usePosts(undefined, 50, category)
-  const [visible, setVisible] = useState(INITIAL)
+  const { posts, loading, error } = usePosts(undefined, 5)
 
-  if (loading) return <Skeleton />
+  const [failedImages, setFailedImages] = useState<Set<string>>(
+    () => new Set()
+  )
 
-  if (error || posts.length === 0) {
+  const handleNavigate = (post: Post) => {
+    navigate(`/posts/${post.slug}`)
+  }
+
+  const handleImageError = (postId: string) => {
+    setFailedImages((current) => {
+      const next = new Set(current)
+      next.add(postId)
+      return next
+    })
+  }
+
+  const getCategoryName = (post: Post): string => {
+    if (post.categories && post.categories.length > 0) {
+      return post.categories[0].name
+    }
+
+    if (post.category_slug) {
+      return post.category_slug.replace(/-/g, " ")
+    }
+
+    return post.type
+  }
+
+  const getCategorySlug = (post: Post): string => {
+    if (post.category_slug) {
+      return post.category_slug
+    }
+
+    if (post.categories && post.categories.length > 0) {
+      return post.categories[0].slug
+    }
+
+    return post.type
+  }
+
+  const getCategoryClass = (post: Post): string => {
+    const slug = getCategorySlug(post)
+
+    switch (slug) {
+      case "music":
+        return styles.categoryMusic
+
+      case "radio":
+        return styles.categoryRadio
+
+      case "documentary":
+      case "documentaries":
+        return styles.categoryDocumentary
+
+      case "comedy":
+        return styles.categoryComedy
+
+      case "video":
+        return styles.categoryVideo
+
+      default:
+        return styles.categoryDefault
+    }
+  }
+
+  const renderImage = (post: Post, isLead: boolean) => {
+    const hasImage =
+      Boolean(post.cover_image) && !failedImages.has(post.id)
+
     return (
-      <section className={styles.section}>
-        <p className={styles.sectionHeading}>ARTICLES</p>
-        <p className={styles.emptyMsg}>{error ? `Could not load posts — ${error}.` : "No posts yet."}</p>
+      <div className={styles.imageWrapper}>
+        {hasImage ? (
+          <img
+            src={post.cover_image ?? ""}
+            alt=""
+            className={styles.image}
+            loading={isLead ? "eager" : "lazy"}
+            onError={() => handleImageError(post.id)}
+          />
+        ) : (
+          <div className={styles.imagePlaceholder}>
+            <span>{getCategoryName(post)}</span>
+          </div>
+        )}
+
+        {post.type !== "article" && (
+          <span className={styles.mediaType}>
+            {post.type === "audio" ? "Listen" : "Watch"}
+          </span>
+        )}
+      </div>
+    )
+  }
+
+  const renderPost = (
+    post: Post,
+    index: number
+  ) => {
+    const isLead = index === 0
+    const isSecondary = index === 1
+
+    const cardClasses = [
+      styles.card,
+      isLead ? styles.leadCard : "",
+      isSecondary ? styles.secondaryCard : "",
+    ]
+      .filter(Boolean)
+      .join(" ")
+
+    return (
+      <article
+        key={post.id}
+        className={cardClasses}
+      >
+        <button
+          type="button"
+          className={styles.imageButton}
+          onClick={() => handleNavigate(post)}
+          aria-label={`Read ${post.title}`}
+        >
+          {renderImage(post, isLead)}
+        </button>
+
+        <div className={styles.content}>
+          <div className={styles.meta}>
+            <span
+              className={[
+                styles.category,
+                getCategoryClass(post),
+              ].join(" ")}
+            >
+              {getCategoryName(post)}
+            </span>
+
+            {post.duration && (
+              <span className={styles.readingTime}>
+                {post.duration}
+              </span>
+            )}
+          </div>
+
+          <h3 className={styles.title}>
+            <button
+              type="button"
+              className={styles.titleButton}
+              onClick={() => handleNavigate(post)}
+            >
+              {post.title}
+            </button>
+          </h3>
+
+          {(isLead || isSecondary) && post.excerpt && (
+            <p className={styles.excerpt}>
+              {post.excerpt}
+            </p>
+          )}
+
+          {isLead ? (
+            <button
+              type="button"
+              className={styles.readStory}
+              onClick={() => handleNavigate(post)}
+            >
+              Read story
+              <span aria-hidden="true">→</span>
+            </button>
+          ) : (
+            <div className={styles.date}>
+              {formatDate(post.created_at)}
+            </div>
+          )}
+        </div>
+      </article>
+    )
+  }
+
+  if (loading) {
+    return (
+      <section
+        className={styles.section}
+        aria-labelledby="latest-posts-heading"
+      >
+        <div className={styles.header}>
+          <h2
+            id="latest-posts-heading"
+            className={styles.heading}
+          >
+            Latest
+          </h2>
+        </div>
+
+        <div className={styles.loading}>
+          Loading latest posts…
+        </div>
       </section>
     )
   }
 
-  const shown = posts.slice(0, visible)
-  const lead = shown.slice(0, 2)         // posts 0–1 in 2-col lead row
-  const secondary = shown.slice(2, 6)    // posts 2–5 in 4-col secondary row
-  const overflow = shown.slice(6)        // posts 6+ in 4-col grid (load more batches)
-  const hasMore = visible < posts.length
+  if (error) {
+    return (
+      <section
+        className={styles.section}
+        aria-labelledby="latest-posts-heading"
+      >
+        <div className={styles.header}>
+          <h2
+            id="latest-posts-heading"
+            className={styles.heading}
+          >
+            Latest
+          </h2>
+        </div>
+
+        <div className={styles.error}>
+          Unable to load the latest posts.
+        </div>
+      </section>
+    )
+  }
+
+  if (posts.length === 0) {
+    return null
+  }
 
   return (
-    <section className={styles.section} data-node-id="4:430">
-      {/* Section heading */}
-      <p className={styles.sectionHeading} data-node-id="4:374">ARTICLES</p>
+    <section
+      className={styles.section}
+      aria-labelledby="latest-posts-heading"
+    >
+      <div className={styles.header}>
+        <h2
+          id="latest-posts-heading"
+          className={styles.heading}
+        >
+          Latest
+        </h2>
 
-      {/* Lead row — 2-col */}
-      <div className={styles.leadRow} data-node-id="4:375">
-        {lead.map((post) => <LeadCard key={post.id} post={post} navigate={navigate} />)}
+        <button
+          type="button"
+          className={styles.viewAll}
+          onClick={() => navigate("/archive")}
+        >
+          View all posts
+          <span aria-hidden="true">→</span>
+        </button>
       </div>
 
-      {/* Secondary row — 4-col */}
-      {secondary.length > 0 && (
-        <div className={styles.secondaryRow} data-node-id="4:392">
-          {secondary.map((post) => <SecondaryCard key={post.id} post={post} navigate={navigate} />)}
-        </div>
-      )}
-
-      {/* Overflow grid — load-more batches */}
-      {overflow.length > 0 && (
-        <div className={styles.overflowRow}>
-          {overflow.map((post) => <SecondaryCard key={post.id} post={post} navigate={navigate} />)}
-        </div>
-      )}
-
-      {/* Action row */}
-      <div className={styles.moreAction} data-node-id="4:427">
-        {hasMore ? (
-          <button
-            className={styles.viewMoreBtn}
-            onClick={() => setVisible((v) => v + PAGE_SIZE)}
-            data-node-id="4:428"
-          >
-            VIEW MORE
-          </button>
-        ) : (
-          <a href="/archive" className={`${styles.viewMoreBtn} ${styles.viewMoreLink}`}>
-            BROWSE ARCHIVE
-          </a>
+      <div className={styles.grid}>
+        {posts.map((post, index) =>
+          renderPost(post, index)
         )}
       </div>
     </section>
   )
 }
+
+export default LatestPosts
