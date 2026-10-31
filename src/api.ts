@@ -70,7 +70,7 @@ export const api = {
       const body = new FormData();
       body.set("file", file);
       return (
-        await request<{ url: string }>("/api/admin/uploads", {
+        await request<{ url: string }>("/api/admin/media", {
           method: "POST",
           body,
         })

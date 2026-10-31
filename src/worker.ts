@@ -19,7 +19,7 @@
  *   GET  /api/posts/:slug   → get single post
  *   GET  /api/pages/:slug   → get single published page (slug or numeric id) with its template
  *
- * R2: media lives in UPLOADS (paulibaby-blog-uploads), served at media.paulibaby.com.
+ * R2: media lives in media (paulibaby-blog-uploads), served at media.paulibaby.com.
  */
 
 import {
@@ -34,7 +34,7 @@ import {
 
 export interface Env extends AuthEnv {
   DB: D1Database;
-  UPLOADS: R2Bucket;
+  media: R2Bucket;
   CONTENT: R2Bucket;
   ASSETS: Fetcher;
 }
@@ -656,7 +656,7 @@ export default {
       if (!file) return json({ error: "No file provided" }, 400);
 
       const key = `${Date.now()}-${file.name}`;
-      await env.UPLOADS.put(key, file.stream(), {
+      await env.media.put(key, file.stream(), {
         httpMetadata: { contentType: file.type },
       });
 
@@ -668,7 +668,7 @@ export default {
 
     // --- Admin: list R2 objects (legacy) ---
     if (path === "/api/admin/upload" && method === "GET") {
-      const listed = await env.UPLOADS.list();
+      const listed = await env.media.list();
       const objects = listed.objects.map((obj: { key: any; size: any; uploaded: { toISOString: () => any; }; }) => ({
         key: obj.key,
         size: obj.size,
@@ -698,7 +698,7 @@ export default {
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
       const key = `${Date.now()}-${safeName}`;
 
-      await env.UPLOADS.put(key, file.stream(), {
+      await env.media.put(key, file.stream(), {
         httpMetadata: { contentType: file.type },
       });
 
@@ -768,9 +768,9 @@ export default {
         ).bind(id).first<{ r2_key: string; thumbnail_key: string | null }>();
         if (!media) return json({ error: "Media not found" }, 404);
 
-        await env.UPLOADS.delete(media.r2_key);
+        await env.media.delete(media.r2_key);
         if (media.thumbnail_key) {
-          try { await env.UPLOADS.delete(media.thumbnail_key); } catch (e) { /* ignore */ }
+          try { await env.media.delete(media.thumbnail_key); } catch (e) { /* ignore */ }
         }
         await env.DB.prepare("DELETE FROM media WHERE id = ?").bind(id).run();
         return json({ success: true });
@@ -792,7 +792,7 @@ export default {
       const allObjects: { key: string; size: number; uploaded: Date; etag: string; httpMetadata?: { contentType?: string } }[] = [];
       let cursor: string | undefined;
       do {
-        const listed = await env.UPLOADS.list({ cursor });
+        const listed = await env.media.list({ cursor });
         for (const obj of listed.objects) {
           allObjects.push({
             key: obj.key,
@@ -839,7 +839,7 @@ export default {
       const body = await request.json() as { r2_key: string };
       if (!body.r2_key) return json({ error: "r2_key is required" }, 400);
 
-      await env.UPLOADS.delete(body.r2_key);
+      await env.media.delete(body.r2_key);
       await env.DB.prepare("DELETE FROM media WHERE r2_key = ?").bind(body.r2_key).run();
       return json({ success: true });
     }
