@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@fourwaves/tiptap-extension-vimeo':
+        specifier: ^1.0.2
+        version: 1.0.2(@tiptap/core@3.32.1(@tiptap/pm@3.32.1))(@tiptap/pm@3.32.1)
       '@sereneinserenade/tiptap-search-and-replace':
         specifier: ^0.1.1
         version: 0.1.1(@tiptap/core@3.32.1(@tiptap/pm@3.32.1))(@tiptap/pm@3.32.1)
@@ -501,6 +504,13 @@ packages:
 
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
+
+  '@fourwaves/tiptap-extension-vimeo@1.0.2':
+    resolution: {integrity: sha512-KhLX6zURmRl2R9HyMvUnSXH5jaeZnGxPVeecsLy3nvdY+imKeH9hT1uTlOUONoQRaRPmIQfySR1Y3ovDf68mAQ==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+    peerDependencies:
+      '@tiptap/core': ^2.0.0-beta.220
+      '@tiptap/pm': ^2.0.0-beta.220
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -2236,6 +2246,13 @@ snapshots:
 
   '@floating-ui/utils@0.2.12':
     optional: true
+
+  '@fourwaves/tiptap-extension-vimeo@1.0.2(@tiptap/core@3.32.1(@tiptap/pm@3.32.1))(@tiptap/pm@3.32.1)':
+    dependencies:
+      '@tiptap/core': 3.32.1(@tiptap/pm@3.32.1)
+      '@tiptap/pm': 3.32.1
+      prosemirror-state: 1.4.4
+      prosemirror-view: 1.42.8
 
   '@humanfs/core@0.19.2':
     dependencies:

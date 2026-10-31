@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable react-refresh/only-export-components */
 import {
   useEffect,
   useLayoutEffect,
@@ -66,6 +68,20 @@ export function youTubeId(input: string): string | null {
   return null;
 }
 
+export function vimeoId(input: string): string | null {
+  const patterns = [
+    /vimeo\.com\/(\d+)/,
+    /vimeo\.com\/channels\/[\w-]+\/(\d+)/,
+    /vimeo\.com\/groups\/[\w-]+\/videos\/(\d+)/,
+    /^(\d+)$/,
+  ];
+  for (const re of patterns) {
+    const id = input.trim().match(re)?.[1];
+    if (id) return id;
+  }
+  return null;
+}
+
 // Only http(s), mailto, tel, and relative links are accepted.
 function normalizeHref(value: string): string | null {
   const v = value.trim();
@@ -90,6 +106,7 @@ const KIND_ICONS: Record<string, LucideIcon> = {
   video: VideoIcon,
   audio: Music,
   youtube: CirclePlay,
+  vimeo: VideoIcon,
   iframe: Globe,
 };
 

@@ -13,6 +13,7 @@
     "db:migrate": "wrangler d1 migrations apply paulibaby-blog --remote"
   },
   "dependencies": {
+    "@fourwaves/tiptap-extension-vimeo": "^1.0.2",
     "@sereneinserenade/tiptap-search-and-replace": "^0.1.1",
     "@tiptap/core": "^3.32.1",
     "@tiptap/extension-code-block-lowlight": "^3.31.2",
