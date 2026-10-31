@@ -40,7 +40,7 @@
         "links": [
           {
             "label": "Dashboard",
-            "href": "admin/dashboard"
+            "href": "/admin/dashboard"
           },
           {
             "label": "Edit posts",
@@ -61,7 +61,7 @@
         "links": [
           {
             "label": "Dashboard",
-            "href": "admin/dashboard"
+            "href": "/admin/dashboard"
           },
           {
             "label": "Edit posts",
