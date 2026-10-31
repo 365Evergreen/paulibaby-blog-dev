@@ -20,15 +20,18 @@
   background-color: var(--bg, #F5F2EC);
   box-shadow: 0 1px 0 var(--border, #C8C4BC);
 }
-.left {
+.left {  gap: 12px;
   display: flex;
   align-items: center;
   flex: 0 0 auto;
 }
 
 .brand {
+
+  height: 70px;
   display: inline-flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   text-decoration: none;
   color: inherit;
@@ -43,9 +46,10 @@
 }
 
 .brandText {
-  font-size: 2.5rem;
+
+  font-size: 48px;
   font-weight: 500;
-  line-height: 10;
+  line-height: 48px;
   text-transform: uppercase;
   color: var(--text, #000);
 

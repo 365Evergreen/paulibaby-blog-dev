@@ -43,9 +43,9 @@ export const Header: React.FC<SiteHeaderProps> = ({ className = "" }) => {
             src="https://blog.paulibaby.com/paulibaby.png"
             alt="Paulibaby logo"
             className={styles.brandLogo}
-          />
-          <span className={styles.brandText}><span className={styles.siteBrand.title}>Paulibaby</span></span>
-        </Link>
+          /></Link>
+          <div className={styles.brandText}>Paulibaby</div>
+        
       </div>
 
       {/* 2. 🍔 Responsive Hamburger Trigger (MOVED HERE TO FIX THE POSITIONING BUG) */}
