@@ -2,13 +2,20 @@
 import { apiFetch } from "../../lib/auth";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { format } from "date-fns";
 import BlockEditor from "../../editor/BlockEditor";
 import { ExternalLink, PanelRight, Plus, Redo2, Undo2 } from "lucide-react";
 import FieldEditor from "../../components/FieldEditor/FieldEditor";
-import { componentRegistry, resolveProps } from "../DashboardPage/Templates/componentRegistry";
-import { fetchTemplates, normalizeTemplate, type Template } from "../DashboardPage/Templates/templatesApi";
-import { DayPicker } from "react-day-picker";
-import { format, parseISO } from "date-fns";
+import {
+  componentRegistry,
+  resolveProps,
+} from "../DashboardPage/Templates/componentRegistry";
+import {
+  fetchTemplates,
+  normalizeTemplate,
+  type Template,
+} from "../DashboardPage/Templates/templatesApi";
+import DatePicker from "../../components/DatePicker/DatePicker";
 import styles from "./PostEditorPage.module.css";
 
 type Post = {
@@ -58,7 +65,7 @@ function buildCategoryTree(categories: Category[]): CategoryNode[] {
 // Flatten the tree into indented options for a <select>
 function flattenCategoryTree(
   nodes: CategoryNode[],
-  depth = 0
+  depth = 0,
 ): { id: number; label: string }[] {
   const result: { id: number; label: string }[] = [];
   for (const node of nodes) {
@@ -80,7 +87,7 @@ export default function PostEditorPage() {
     body: "",
     cover_image: null,
     published: false,
-    published_date: format(new Date(), "yyyy-MM-dd"),
+    published_date: new Date().toISOString().split("T")[0],
     category_ids: [],
     template_id: null,
     template_content: {},
@@ -88,7 +95,9 @@ export default function PostEditorPage() {
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
-  const [drawerOpen, setDrawerOpen] = useState(() => window.matchMedia("(min-width: 900px)").matches);
+  const [drawerOpen, setDrawerOpen] = useState(
+    () => window.matchMedia("(min-width: 900px)").matches,
+  );
   const [categories, setCategories] = useState<Category[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -106,9 +115,15 @@ export default function PostEditorPage() {
 
   async function loadTemplates() {
     try {
-      setTemplates((await fetchTemplates()).map(normalizeTemplate).filter((template) => template.template_type === "post"));
+      setTemplates(
+        (await fetchTemplates())
+          .map(normalizeTemplate)
+          .filter((template) => template.template_type === "post"),
+      );
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load templates.");
+      setMessage(
+        error instanceof Error ? error.message : "Unable to load templates.",
+      );
     }
   }
 
@@ -139,7 +154,10 @@ export default function PostEditorPage() {
         published_date: data.published_date ?? format(new Date(), "yyyy-MM-dd"),
         category_ids: data.category_ids || [],
         template_id: data.template_id ?? null,
-        template_content: typeof data.template_content === "object" && data.template_content ? data.template_content : {},
+        template_content:
+          typeof data.template_content === "object" && data.template_content
+            ? data.template_content
+            : {},
       });
     }
     setLoading(false);
@@ -170,7 +188,11 @@ export default function PostEditorPage() {
         });
         const created = await res.json();
         if (created.id) {
-          setEditing((cur) => ({ ...cur, id: created.id, slug: created.slug ?? cur.slug }));
+          setEditing((cur) => ({
+            ...cur,
+            id: created.id,
+            slug: created.slug ?? cur.slug,
+          }));
         }
       }
 
@@ -194,7 +216,12 @@ export default function PostEditorPage() {
   }
 
   function previewPost() {
-    if (editing.published && editing.slug) window.open(`/posts/${encodeURIComponent(editing.slug)}`, "_blank", "noopener");
+    if (editing.published && editing.slug)
+      window.open(
+        `/posts/${encodeURIComponent(editing.slug)}`,
+        "_blank",
+        "noopener",
+      );
     else setMessage("Publish the post to preview it.");
     setTimeout(() => setMessage(""), 3000);
   }
@@ -279,27 +306,47 @@ export default function PostEditorPage() {
   function chooseTemplate(templateId: string) {
     const template = templates.find((item) => item.id === Number(templateId));
     if (!template) {
-      setEditing((current) => ({ ...current, template_id: null, template_content: {} }));
+      setEditing((current) => ({
+        ...current,
+        template_id: null,
+        template_content: {},
+      }));
       return;
     }
-    const content = Object.fromEntries((template.schema.components ?? []).map((component) => [
-      component.id,
-      resolveProps(component.type, { ...component.props, ...(editing.template_content[component.id] ?? {}) }),
-    ]));
-    setEditing((current) => ({ ...current, template_id: template.id, template_content: content }));
+    const content = Object.fromEntries(
+      (template.schema.components ?? []).map((component) => [
+        component.id,
+        resolveProps(component.type, {
+          ...component.props,
+          ...(editing.template_content[component.id] ?? {}),
+        }),
+      ]),
+    );
+    setEditing((current) => ({
+      ...current,
+      template_id: template.id,
+      template_content: content,
+    }));
   }
 
-  function updateTemplateContent(componentId: string, key: string, value: unknown) {
+  function updateTemplateContent(
+    componentId: string,
+    key: string,
+    value: unknown,
+  ) {
     setEditing((current) => ({
       ...current,
       template_content: {
         ...current.template_content,
-        [componentId]: { ...(current.template_content[componentId] ?? {}), [key]: value },
+        [componentId]: {
+          ...(current.template_content[componentId] ?? {}),
+          [key]: value,
+        },
       },
     }));
   }
 
- if (loading) {
+  if (loading) {
     return (
       <div className={styles.editorPage}>
         <div className={styles.loading}>Loading…</div>
@@ -308,290 +355,351 @@ export default function PostEditorPage() {
   }
 
   const categoryOptions = flattenCategoryTree(buildCategoryTree(categories));
-  const selectedTemplate = templates.find((template) => template.id === editing.template_id);
-    return (
-
+  const selectedTemplate = templates.find(
+    (template) => template.id === editing.template_id,
+  );
+  return (
     <div className={styles.editorPage}>
       {/* Block drawer + canvas + settings panel */}
       <div className={styles.editorBody}>
-      <BlockEditor
-        value={editing.body}
-        onChange={(html) => setEditing((cur) => ({ ...cur, body: html }))}
-        onUpload={uploadImage}
-        onError={setMessage}
-        topbar={({ editor, blocksOpen, toggleBlocks }) => (
-          <header className={styles.topbar}>
-            <div className={styles.topbarLeft}>
-              <button className={`${styles.iconBtn} ${styles.iconBtnPrimary}`}
-              onClick={() => navigate("/admin/dashboard")}
-              >
-
-              </button>
-              <button
-                className={`${styles.iconBtn} ${blocksOpen ? styles.iconBtnActive : ""}`}
-                onClick={toggleBlocks}
-                aria-pressed={blocksOpen}
-                aria-label={blocksOpen ? "Close block drawer" : "Open block drawer"}
-                title="Toggle blocks"
-              >
-                <Plus size={18} />
-              </button>
-              <button className={styles.iconBtn} onClick={() => editor?.chain().focus().undo().run()} disabled={!editor?.can().undo()} aria-label="Undo" title="Undo">
-                <Undo2 size={18} />
-              </button>
-              <button className={styles.iconBtn} onClick={() => editor?.chain().focus().redo().run()} disabled={!editor?.can().redo()} aria-label="Redo" title="Redo">
-                <Redo2 size={18} />
-              </button>
-            </div>
-            <input
-              type="text"
-              value={editing.title}
-              onChange={(e) => setEditing((cur) => ({ ...cur, title: e.target.value }))}
-              placeholder="Add title"
-              aria-label="Post title"
-              className={styles.topbarTitle}
-            />
-            <div className={styles.topbarRight}>
-              {message && <span className={styles.message}>{message}</span>}
-              <button className={styles.btnSecondary} onClick={() => savePost(false)} disabled={saving}>
-                Save draft
-              </button>
-              <button className={styles.btnSecondary} onClick={previewPost} title="Open the published post in a new tab">
-                <ExternalLink size={14} /> Preview
-              </button>
-              <button className={styles.btnPrimary} onClick={() => savePost(true)} disabled={saving}>
-                {saving ? "Saving…" : editing.published ? "Update" : "Publish"}
-              </button>
-              <button
-                className={`${styles.iconBtn} ${drawerOpen ? styles.iconBtnActive : ""}`}
-                onClick={() => setDrawerOpen((o) => !o)}
-                aria-pressed={drawerOpen}
-                aria-label={drawerOpen ? "Hide settings" : "Show settings"}
-                title={drawerOpen ? "Hide settings" : "Show settings"}
-              >
-                <PanelRight size={18} />
-              </button>
-            </div>
-          </header>
-        )}
-        aside={
-          <>
-      {/* Settings drawer */}
-      {drawerOpen && (
-        <>
-          <div
-            className={styles.drawerOverlay}
-            onClick={() => setDrawerOpen(false)}
-          />
-          <aside className={styles.drawer}>
-            <div className={styles.drawerHeader}>
-              <h2>Post Settings</h2>
-              <button
-                onClick={() => setDrawerOpen(false)}
-                className={styles.drawerClose}
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className={styles.drawerBody}>
-              {/* Slug */}
-              <div className={styles.formGroup}>
-                <label>Slug</label>
-                <input
-                  type="text"
-                  value={editing.slug}
-                  onChange={(e) =>
-                    setEditing({ ...editing, slug: e.target.value })
+        <BlockEditor
+          value={editing.body}
+          onChange={(html) => setEditing((cur) => ({ ...cur, body: html }))}
+          onUpload={uploadImage}
+          onError={setMessage}
+          topbar={({ editor, blocksOpen, toggleBlocks }) => (
+            <header className={styles.topbar}>
+              <div className={styles.topbarLeft}>
+                <button
+                  className={`${styles.iconBtn} ${styles.iconBtnPrimary}`}
+                  onClick={() => navigate("/admin/dashboard")}
+                ></button>
+                <button
+                  className={`${styles.iconBtn} ${blocksOpen ? styles.iconBtnActive : ""}`}
+                  onClick={toggleBlocks}
+                  aria-pressed={blocksOpen}
+                  aria-label={
+                    blocksOpen ? "Close block drawer" : "Open block drawer"
                   }
-                  placeholder="auto-generated-from-title"
-                  className={styles.formInput}
-                />
-                <small>Leave empty to auto-generate from title</small>
+                  title="Toggle blocks"
+                >
+                  <Plus size={18} />
+                </button>
+                <button
+                  className={styles.iconBtn}
+                  onClick={() => editor?.chain().focus().undo().run()}
+                  disabled={!editor?.can().undo()}
+                  aria-label="Undo"
+                  title="Undo"
+                >
+                  <Undo2 size={18} />
+                </button>
+                <button
+                  className={styles.iconBtn}
+                  onClick={() => editor?.chain().focus().redo().run()}
+                  disabled={!editor?.can().redo()}
+                  aria-label="Redo"
+                  title="Redo"
+                >
+                  <Redo2 size={18} />
+                </button>
               </div>
-
-              {/* Excerpt */}
-              <div className={styles.formGroup}>
-                <label>Excerpt</label>
-                <textarea
-                  value={editing.excerpt}
-                  onChange={(e) =>
-                    setEditing({ ...editing, excerpt: e.target.value })
-                  }
-                  placeholder="Short summary shown in the post list"
-                  className={styles.formTextarea}
-                  rows={4}
-                />
+              <input
+                type="text"
+                value={editing.title}
+                onChange={(e) =>
+                  setEditing((cur) => ({ ...cur, title: e.target.value }))
+                }
+                placeholder="Add title"
+                aria-label="Post title"
+                className={styles.topbarTitle}
+              />
+              <div className={styles.topbarRight}>
+                {message && <span className={styles.message}>{message}</span>}
+                <button
+                  className={styles.btnSecondary}
+                  onClick={() => savePost(false)}
+                  disabled={saving}
+                >
+                  Save draft
+                </button>
+                <button
+                  className={styles.btnSecondary}
+                  onClick={previewPost}
+                  title="Open the published post in a new tab"
+                >
+                  <ExternalLink size={14} /> Preview
+                </button>
+                <button
+                  className={styles.btnPrimary}
+                  onClick={() => savePost(true)}
+                  disabled={saving}
+                >
+                  {saving
+                    ? "Saving…"
+                    : editing.published
+                      ? "Update"
+                      : "Publish"}
+                </button>
+                <button
+                  className={`${styles.iconBtn} ${drawerOpen ? styles.iconBtnActive : ""}`}
+                  onClick={() => setDrawerOpen((o) => !o)}
+                  aria-pressed={drawerOpen}
+                  aria-label={drawerOpen ? "Hide settings" : "Show settings"}
+                  title={drawerOpen ? "Hide settings" : "Show settings"}
+                >
+                  <PanelRight size={18} />
+                </button>
               </div>
-
-              {/* Cover Image */}
-              <div className={styles.formGroup}>
-                <label>Cover Image</label>
-                <div className={styles.coverUpload}>
-                  {editing.cover_image && (
-                    <img
-                      src={editing.cover_image}
-                      alt="Cover preview"
-                      className={styles.coverPreview}
-                    />
-                  )}
-                  <input
-                    type="text"
-                    value={editing.cover_image || ""}
-                    onChange={(e) =>
-                      setEditing({ ...editing, cover_image: e.target.value })
-                    }
-                    placeholder="https://media.paulibaby.com/image.jpg"
-                    className={styles.formInput}
+            </header>
+          )}
+          aside={
+            <>
+              {/* Settings drawer */}
+              {drawerOpen && (
+                <>
+                  <div
+                    className={styles.drawerOverlay}
+                    onClick={() => setDrawerOpen(false)}
                   />
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleCoverUpload}
-                    accept="image/*"
-                    style={{ display: "none" }}
-                  />
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`${styles.btnSecondary} ${styles.btnFull}`}
-                  >
-                    Upload Image
-                  </button>
-                </div>
-              </div>
+                  <aside className={styles.drawer}>
+                    <div className={styles.drawerHeader}>
+                      <h2>Post Settings</h2>
+                      <button
+                        onClick={() => setDrawerOpen(false)}
+                        className={styles.drawerClose}
+                      >
+                        ✕
+                      </button>
+                    </div>
 
-              {/* Category selector (multi-select) */}
-              <div className={styles.formGroup}>
-                <label>Categories</label>
-                <div className={styles.categoryList}>
-                  {categoryOptions.length === 0 && (
-                    <small>No categories yet — create one below</small>
-                  )}
-                  {categoryOptions.map((opt) => (
-                    <label key={opt.id} className={styles.categoryItem}>
-                      <input
-                        type="checkbox"
-                        checked={editing.category_ids.includes(opt.id)}
-                        onChange={() => toggleCategory(opt.id)}
-                      />
-                      <span>{opt.label}</span>
-                    </label>
-                  ))}
-                </div>
-                <small>Select one or more categories for this post</small>
-              </div>
+                    <div className={styles.drawerBody}>
+                      {/* Slug */}
+                      <div className={styles.formGroup}>
+                        <label>Slug</label>
+                        <input
+                          type="text"
+                          value={editing.slug}
+                          onChange={(e) =>
+                            setEditing({ ...editing, slug: e.target.value })
+                          }
+                          placeholder="auto-generated-from-title"
+                          className={styles.formInput}
+                        />
+                        <small>Leave empty to auto-generate from title</small>
+                      </div>
 
-              <div className={styles.formGroup}>
-                <label>Template</label>
-                <select className={styles.formInput} value={editing.template_id ?? ""} onChange={(event) => chooseTemplate(event.target.value)}>
-                  <option value="">No template</option>
-                  {templates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}
-                </select>
-                <small>Select a template to configure its components for this post.</small>
-              </div>
+                      {/* Excerpt */}
+                      <div className={styles.formGroup}>
+                        <label>Excerpt</label>
+                        <textarea
+                          value={editing.excerpt}
+                          onChange={(e) =>
+                            setEditing({ ...editing, excerpt: e.target.value })
+                          }
+                          placeholder="Short summary shown in the post list"
+                          className={styles.formTextarea}
+                          rows={4}
+                        />
+                      </div>
 
-              {selectedTemplate?.schema.components?.map((component) => {
-                const definition = componentRegistry[component.type];
-                if (!definition) return null;
-                const content = resolveProps(component.type, { ...component.props, ...(editing.template_content[component.id] ?? {}) });
-                return (
-                  <div className={styles.formGroup} key={component.id}>
-                    <label>{definition.name}</label>
-                    <small>{definition.description}</small>
-                    <FieldEditor fields={definition.fields} values={content} onChange={(key, value) => updateTemplateContent(component.id, key, value)} />
-                  </div>
-                );
-              })}
+                      {/* Cover Image */}
+                      <div className={styles.formGroup}>
+                        <label>Cover Image</label>
+                        <div className={styles.coverUpload}>
+                          {editing.cover_image && (
+                            <img
+                              src={editing.cover_image}
+                              alt="Cover preview"
+                              className={styles.coverPreview}
+                            />
+                          )}
+                          <input
+                            type="text"
+                            value={editing.cover_image || ""}
+                            onChange={(e) =>
+                              setEditing({
+                                ...editing,
+                                cover_image: e.target.value,
+                              })
+                            }
+                            placeholder="https://media.paulibaby.com/image.jpg"
+                            className={styles.formInput}
+                          />
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleCoverUpload}
+                            accept="image/*"
+                            style={{ display: "none" }}
+                          />
+                          <button
+                            onClick={() => fileInputRef.current?.click()}
+                            className={`${styles.btnSecondary} ${styles.btnFull}`}
+                          >
+                            Upload Image
+                          </button>
+                        </div>
+                      </div>
 
-              {/* Inline category creator */}
-              <div className={styles.formGroup}>
-                <label>Add new category</label>
-                <div className={styles.categoryAddRow}>
-                  <input
-                    type="text"
-                    value={newCategoryName}
-                    onChange={(e) => setNewCategoryName(e.target.value)}
-                    placeholder="Category name"
-                    className={styles.formInput}
-                  />
-                  <select
-                    value={newCategoryParent}
-                    onChange={(e) => setNewCategoryParent(e.target.value)}
-                    className={styles.formInput}
-                  >
-                    <option value="">Top-level</option>
-                    {categoryOptions.map((opt) => (
-                      <option key={opt.id} value={opt.id}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={createCategory}
-                    disabled={addingCategory || !newCategoryName.trim()}
-                    className={styles.btnSecondary}
-                  >
-                    {addingCategory ? "…" : "+ Add"}
-                  </button>
-                </div>
-                <small>Nest under an existing category or leave as top-level</small>
-              </div>
+                      {/* Category selector (multi-select) */}
+                      <div className={styles.formGroup}>
+                        <label>Categories</label>
+                        <div className={styles.categoryList}>
+                          {categoryOptions.length === 0 && (
+                            <small>No categories yet — create one below</small>
+                          )}
+                          {categoryOptions.map((opt) => (
+                            <label key={opt.id} className={styles.categoryItem}>
+                              <input
+                                type="checkbox"
+                                checked={editing.category_ids.includes(opt.id)}
+                                onChange={() => toggleCategory(opt.id)}
+                              />
+                              <span>{opt.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                        <small>
+                          Select one or more categories for this post
+                        </small>
+                      </div>
 
-              {/* Published toggle */}
-              <div className={styles.formGroup}>
-                <label className={styles.checkboxLabel}>
-                  <input
-                    type="checkbox"
-                    checked={Boolean(editing.published)}
-                    onChange={(e) =>
-                      setEditing({ ...editing, published: e.target.checked })
-                    }
-                  />
-                  Published
-                </label>
-              </div>
+                      <div className={styles.formGroup}>
+                        <label>Template</label>
+                        <select
+                          className={styles.formInput}
+                          value={editing.template_id ?? ""}
+                          onChange={(event) =>
+                            chooseTemplate(event.target.value)
+                          }
+                        >
+                          <option value="">No template</option>
+                          {templates.map((template) => (
+                            <option key={template.id} value={template.id}>
+                              {template.name}
+                            </option>
+                          ))}
+                        </select>
+                        <small>
+                          Select a template to configure its components for this
+                          post.
+                        </small>
+                      </div>
 
-              {/* Publish Date */}
-              <div className={styles.formGroup}>
-                <label>Publish Date</label>
-                <div className={styles.datePickerWrapper}>
-                  <DayPicker
-                    mode="single"
-                    selected={editing.published_date ? parseISO(editing.published_date) : undefined}
-                    onSelect={(date) =>
-                      setEditing({
-                        ...editing,
-                        published_date: date ? format(date, "yyyy-MM-dd") : null,
-                      })
-                    }
-                    classNames={{
-                      root: styles.datePicker,
-                      month: styles.datePickerMonth,
-                      day: styles.datePickerDay,
-                      selected: styles.datePickerDaySelected,
-                      today: styles.datePickerDayToday,
-                    }}
-                  />
-                </div>
-                <small>Choose when this post should be published. Leave empty to publish immediately.</small>
-              </div>
-            </div>
+                      {selectedTemplate?.schema.components?.map((component) => {
+                        const definition = componentRegistry[component.type];
+                        if (!definition) return null;
+                        const content = resolveProps(component.type, {
+                          ...component.props,
+                          ...(editing.template_content[component.id] ?? {}),
+                        });
+                        return (
+                          <div className={styles.formGroup} key={component.id}>
+                            <label>{definition.name}</label>
+                            <small>{definition.description}</small>
+                            <FieldEditor
+                              fields={definition.fields}
+                              values={content}
+                              onChange={(key, value) =>
+                                updateTemplateContent(component.id, key, value)
+                              }
+                            />
+                          </div>
+                        );
+                      })}
 
-            <div className={styles.drawerFooter}>
-              <button
-                onClick={() => setDrawerOpen(false)}
-                className={`${styles.btnPrimary} ${styles.btnFull}`}
-              >
-                Done
-              </button>
-            </div>
-          </aside>
-        </>
-      )}
-          </>
-        }
-      />
+                      {/* Inline category creator */}
+                      <div className={styles.formGroup}>
+                        <label>Add new category</label>
+                        <div className={styles.categoryAddRow}>
+                          <input
+                            type="text"
+                            value={newCategoryName}
+                            onChange={(e) => setNewCategoryName(e.target.value)}
+                            placeholder="Category name"
+                            className={styles.formInput}
+                          />
+                          <select
+                            value={newCategoryParent}
+                            onChange={(e) =>
+                              setNewCategoryParent(e.target.value)
+                            }
+                            className={styles.formInput}
+                          >
+                            <option value="">Top-level</option>
+                            {categoryOptions.map((opt) => (
+                              <option key={opt.id} value={opt.id}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            onClick={createCategory}
+                            disabled={addingCategory || !newCategoryName.trim()}
+                            className={styles.btnSecondary}
+                          >
+                            {addingCategory ? "…" : "+ Add"}
+                          </button>
+                        </div>
+                        <small>
+                          Nest under an existing category or leave as top-level
+                        </small>
+                      </div>
 
+                      {/* Published toggle */}
+                      <div className={styles.formGroup}>
+                        <label className={styles.checkboxLabel}>
+                          <input
+                            type="checkbox"
+                            checked={Boolean(editing.published)}
+                            onChange={(e) =>
+                              setEditing({
+                                ...editing,
+                                published: e.target.checked,
+                              })
+                            }
+                          />
+                          Published
+                        </label>
+                      </div>
+
+                      {/* Publish Date */}
+                      <div className={styles.formGroup}>
+                        <label>Publish Date</label>
+                        <div className={styles.datePickerWrapper}>
+                          <DatePicker
+                            label="Publish Date"
+                            value={editing.published_date ?? ""}
+                            onChange={(newDate: string) =>
+                              setEditing((prev) => ({
+                                ...prev,
+                                published_date: newDate,
+                              }))
+                            }
+                          />
+                        </div>
+                        <small>
+                          Choose when this post should be published. Leave empty
+                          to publish immediately.
+                        </small>
+                      </div>
+                    </div>
+
+                    <div className={styles.drawerFooter}>
+                      <button
+                        onClick={() => setDrawerOpen(false)}
+                        className={`${styles.btnPrimary} ${styles.btnFull}`}
+                      >
+                        Done
+                      </button>
+                    </div>
+                  </aside>
+                </>
+              )}
+            </>
+          }
+        />
       </div>
     </div>
   );
