@@ -116,7 +116,8 @@ export default function PageEditorPage() {
         setEditing((cur) => ({ ...cur, published }));
         setMessage(published ? "Published!" : "Draft saved.");
       } else {
-        setMessage("Error saving page.");
+        const err = await res.json().catch(() => ({}));
+        setMessage(err.error || "Error saving page.");
       }
     } catch {
       setMessage("Network error.");

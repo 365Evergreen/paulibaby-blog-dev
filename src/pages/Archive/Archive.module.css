@@ -9,3 +9,7 @@
 .contentPageTitle{
     width: 100%;
 }
+
+@media (max-width: 767px) {
+  .contentContainer { padding: 0 1rem; margin-top: 5.5rem; }
+}
