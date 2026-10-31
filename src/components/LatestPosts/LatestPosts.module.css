@@ -191,7 +191,12 @@
 }
 
 .viewMoreLink {
-  background-color: var(--accent, #303030);
+  background-color: var(--bg, #dedcdc);
+  color: var(--text, #111);
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s;
   /* anchor variant — same appearance */
 }
 

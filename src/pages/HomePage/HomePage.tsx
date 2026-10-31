@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Carousel from "../../components/Carousel/Carousel";
 //import FeaturedPost from "../../components/FeaturedPost/FeaturedPost"
 import LatestPosts from "../../components/LatestPosts/LatestPosts";
-import VideoPlayer from "../../components/VideoPlayer/VideoPlayer";
+//import VideoPlayer from "../../components/VideoPlayer/VideoPlayer";
 import styles from "./HomePage.module.css";
 
 interface Slide {
@@ -46,7 +46,7 @@ const HomePage = () => {
       <section className={styles.section}>
         <div className={styles.latestPosts}>
           <LatestPosts />
-          <VideoPlayer />
+          {/* <VideoPlayer /> */}
         </div>
       </section>
     </main>

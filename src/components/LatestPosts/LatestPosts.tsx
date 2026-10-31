@@ -50,13 +50,15 @@ function LeadCard({ post, navigate }: { post: Post; navigate: ReturnType<typeof 
       <div className={styles.postDetails} data-node-id="4:382">
         <p className={styles.title} data-node-id="4:383">
           <a href={`/posts/${post.category_slug || "uncategorised"}/${post.slug}`} className={styles.titleLink}>{post.title}</a>
-        </p>
+        </p>  <p className={styles.metaLine} data-node-id="4:384">
+            {typeLabel} | {formatLong(post.created_at)}
+          </p>
         <p className={styles.postExcerpt}> {truncateText(post.excerpt, 200)}</p>
         
         <div className={styles.metaRow}>
-          <p className={styles.metaLine} data-node-id="4:384">
-            {typeLabel} | {formatLong(post.created_at)}
-          </p>
+        <button className={styles.viewMoreLink} onClick={() => navigate({pathname: `/posts/${post.category_slug || "uncategorised"}/${post.slug}`})}>
+         Read here
+        </button>
           {primaryCategory && (
             <button
               className={styles.categoryPill}
