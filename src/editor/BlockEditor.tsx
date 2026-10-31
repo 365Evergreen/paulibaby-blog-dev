@@ -41,7 +41,7 @@ import { Columns } from "./tiptap/ColumnsExtension/Columns";
 import { Column } from "./tiptap/ColumnsExtension/Column";
 import { CodeBlock } from "./tiptap/CodeBlockExtension/CodeBlock";
 import { BlockFocus } from "./BlockFocus";
-import BlockToolbar, { youTubeId, vimeoId } from "./BlockToolbar";
+import BlockToolbar, { youTubeId } from "./BlockToolbar";
 import proseStyles from "./Prose.module.css";
 import styles from "./BlockEditor.module.css";
 
@@ -162,10 +162,9 @@ const BLOCKS: BlockDef[] = [
     icon: VideoIcon,
     build: () => {
       const input = ask("Vimeo URL", "");
-      const id = input && vimeoId(input);
-      if (input && !id)
-        window.alert("Could not find a Vimeo video ID in that URL.");
-      return id ? { type: "vimeo", attrs: { videoId: id } } : null;
+      if (!input) return null;
+      // The Vimeo extension expects the full URL as src
+      return { type: "vimeo", attrs: { src: input } };
     },
   },
   {
