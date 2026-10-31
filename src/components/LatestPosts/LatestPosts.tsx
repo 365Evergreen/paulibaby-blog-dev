@@ -7,16 +7,40 @@ import {
 } from "../../hooks/usePosts"
 import styles from "./LatestPosts.module.css"
 
-const LatestPosts = () => {
+interface LatestPostsProps {
+  excludePostId?: string
+}
+
+export default function LatestPosts({
+  excludePostId,
+}: LatestPostsProps) {
   const navigate = useNavigate()
-  const { posts, loading, error } = usePosts(undefined, 5)
+
+  /*
+   * Fetch six posts because one may be the featured post.
+   * After excluding it, we still want up to five posts
+   * available for the Latest layout.
+   */
+  const { posts, loading, error } = usePosts(undefined, 6)
 
   const [failedImages, setFailedImages] = useState<Set<string>>(
     () => new Set()
   )
 
+  /*
+   * Remove the featured post before constructing the
+   * five-post Latest layout.
+   */
+  const latestPosts = posts
+    .filter((post) => post.id !== excludePostId)
+    .slice(0, 5)
+
   const handleNavigate = (post: Post) => {
     navigate(`/posts/${post.slug}`)
+  }
+
+  const handleViewAll = () => {
+    navigate("/archive")
   }
 
   const handleImageError = (postId: string) => {
@@ -52,13 +76,15 @@ const LatestPosts = () => {
   }
 
   const getCategoryClass = (post: Post): string => {
-    const slug = getCategorySlug(post)
+    const slug = getCategorySlug(post).toLowerCase()
 
     switch (slug) {
       case "music":
         return styles.categoryMusic
 
       case "radio":
+      case "radio-and-podcasts":
+      case "podcasts":
         return styles.categoryRadio
 
       case "documentary":
@@ -76,9 +102,24 @@ const LatestPosts = () => {
     }
   }
 
+  const getMediaLabel = (post: Post): string | null => {
+    switch (post.type) {
+      case "audio":
+        return "Listen"
+
+      case "video":
+        return "Watch"
+
+      default:
+        return null
+    }
+  }
+
   const renderImage = (post: Post, isLead: boolean) => {
     const hasImage =
       Boolean(post.cover_image) && !failedImages.has(post.id)
+
+    const mediaLabel = getMediaLabel(post)
 
     return (
       <div className={styles.imageWrapper}>
@@ -96,19 +137,16 @@ const LatestPosts = () => {
           </div>
         )}
 
-        {post.type !== "article" && (
+        {mediaLabel && (
           <span className={styles.mediaType}>
-            {post.type === "audio" ? "Listen" : "Watch"}
+            {mediaLabel}
           </span>
         )}
       </div>
     )
   }
 
-  const renderPost = (
-    post: Post,
-    index: number
-  ) => {
+  const renderPost = (post: Post, index: number) => {
     const isLead = index === 0
     const isSecondary = index === 1
 
@@ -116,6 +154,13 @@ const LatestPosts = () => {
       styles.card,
       isLead ? styles.leadCard : "",
       isSecondary ? styles.secondaryCard : "",
+    ]
+      .filter(Boolean)
+      .join(" ")
+
+    const categoryClasses = [
+      styles.category,
+      getCategoryClass(post),
     ]
       .filter(Boolean)
       .join(" ")
@@ -136,12 +181,7 @@ const LatestPosts = () => {
 
         <div className={styles.content}>
           <div className={styles.meta}>
-            <span
-              className={[
-                styles.category,
-                getCategoryClass(post),
-              ].join(" ")}
-            >
+            <span className={categoryClasses}>
               {getCategoryName(post)}
             </span>
 
@@ -231,7 +271,7 @@ const LatestPosts = () => {
     )
   }
 
-  if (posts.length === 0) {
+  if (latestPosts.length === 0) {
     return null
   }
 
@@ -251,7 +291,7 @@ const LatestPosts = () => {
         <button
           type="button"
           className={styles.viewAll}
-          onClick={() => navigate("/archive")}
+          onClick={handleViewAll}
         >
           View all posts
           <span aria-hidden="true">→</span>
@@ -259,12 +299,10 @@ const LatestPosts = () => {
       </div>
 
       <div className={styles.grid}>
-        {posts.map((post, index) =>
+        {latestPosts.map((post, index) =>
           renderPost(post, index)
         )}
       </div>
     </section>
   )
 }
-
-export default LatestPosts
