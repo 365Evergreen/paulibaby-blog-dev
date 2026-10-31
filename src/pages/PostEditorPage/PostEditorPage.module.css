@@ -685,3 +685,67 @@
 .editorBody { padding: 0; max-width: none; }
 .editorBody > :first-child { position: relative; }
 .topbar { position: sticky; top: 0; z-index: 100; }
+
+/* --- Date Picker --- */
+
+.datePickerWrapper {
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 0.5rem;
+  background: #fafafa;
+}
+
+.datePicker {
+  display: inline-block;
+}
+
+.datePickerMonth {
+  padding: 0.5rem 0;
+}
+
+.datePickerDay {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.datePickerDay:hover:not(:disabled) {
+  background: #f0f0f0;
+}
+
+.datePickerDay:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.datePickerDaySelected {
+  background: #e85d4e !important;
+  color: white !important;
+}
+
+.datePickerDaySelected:hover {
+  background: #d05345 !important;
+}
+
+.datePickerDayToday {
+  font-weight: 700;
+  color: #e85d4e;
+}
+
+.datePickerDayToday:not(.datePickerDaySelected)::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #e85d4e;
+}

@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS posts (
 
 
 -- Index for listing by date
-CREATE INDEX IF NOT EXISTS idx_posts_published_date ON posts(published, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_posts_published_date ON posts(published, created_at, published_date DESC);
 
 -- Seed with sample posts
 INSERT INTO posts (slug, title, excerpt, body, cover_image, published) VALUES

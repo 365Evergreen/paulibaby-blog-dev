@@ -7,6 +7,8 @@ import { ExternalLink, PanelRight, Plus, Redo2, Undo2 } from "lucide-react";
 import FieldEditor from "../../components/FieldEditor/FieldEditor";
 import { componentRegistry, resolveProps } from "../DashboardPage/Templates/componentRegistry";
 import { fetchTemplates, normalizeTemplate, type Template } from "../DashboardPage/Templates/templatesApi";
+import { DayPicker } from "react-day-picker";
+import { format, parseISO } from "date-fns";
 import styles from "./PostEditorPage.module.css";
 
 type Post = {
@@ -17,6 +19,7 @@ type Post = {
   body: string;
   cover_image: string | null;
   published: number | boolean;
+  published_date: string | null;
   category_ids: number[];
   template_id: number | null;
   template_content: Record<string, Record<string, unknown>>;
@@ -77,6 +80,7 @@ export default function PostEditorPage() {
     body: "",
     cover_image: null,
     published: false,
+    published_date: format(new Date(), "yyyy-MM-dd"),
     category_ids: [],
     template_id: null,
     template_content: {},
@@ -132,6 +136,7 @@ export default function PostEditorPage() {
       setEditing({
         ...data,
         published: Boolean(data.published),
+        published_date: data.published_date ?? format(new Date(), "yyyy-MM-dd"),
         category_ids: data.category_ids || [],
         template_id: data.template_id ?? null,
         template_content: typeof data.template_content === "object" && data.template_content ? data.template_content : {},
@@ -544,6 +549,31 @@ export default function PostEditorPage() {
                   />
                   Published
                 </label>
+              </div>
+
+              {/* Publish Date */}
+              <div className={styles.formGroup}>
+                <label>Publish Date</label>
+                <div className={styles.datePickerWrapper}>
+                  <DayPicker
+                    mode="single"
+                    selected={editing.published_date ? parseISO(editing.published_date) : undefined}
+                    onSelect={(date) =>
+                      setEditing({
+                        ...editing,
+                        published_date: date ? format(date, "yyyy-MM-dd") : null,
+                      })
+                    }
+                    classNames={{
+                      root: styles.datePicker,
+                      month: styles.datePickerMonth,
+                      day: styles.datePickerDay,
+                      daySelected: styles.datePickerDaySelected,
+                      dayToday: styles.datePickerDayToday,
+                    }}
+                  />
+                </div>
+                <small>Choose when this post should be published. Leave empty to publish immediately.</small>
               </div>
             </div>
 
