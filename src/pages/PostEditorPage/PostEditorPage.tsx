@@ -568,8 +568,8 @@ export default function PostEditorPage() {
                       root: styles.datePicker,
                       month: styles.datePickerMonth,
                       day: styles.datePickerDay,
-                      daySelected: styles.datePickerDaySelected,
-                      dayToday: styles.datePickerDayToday,
+                      selected: styles.datePickerDaySelected,
+                      today: styles.datePickerDayToday,
                     }}
                   />
                 </div>

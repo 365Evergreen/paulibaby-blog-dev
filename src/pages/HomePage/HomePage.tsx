@@ -39,7 +39,7 @@ const HomePage = () => {
     return <div className={styles.loading}>Loading content...</div>;
   }
   return (
-    <main className={styles.contentContainer}>
+       <main className={styles.contentContainer}>
       <div className={styles.carouselContainer}>
         <Carousel slides={carouselSlide} autoSlide={true} interval={5000} />
       </div>
