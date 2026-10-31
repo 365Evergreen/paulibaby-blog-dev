@@ -2,13 +2,14 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  width: 100%;
+  width: min(1320px, calc(100% - 48px));
+  margin-inline: auto;
   max-width: 100%;
   overflow-x: hidden;
   box-sizing: border-box;
 }
 
-.mainContent {
+.mainContent {margin-block: clamp(5rem, 9vw, 10rem);
   padding: 0;
   width: 100%;
   max-width: 100%;
