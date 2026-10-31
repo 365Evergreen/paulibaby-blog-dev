@@ -43,10 +43,11 @@
 }
 
 .brandText {
-  font-size: 1.125rem;
+  font-size: 2.5rem;
   font-weight: 500;
-  line-height: 1;
-  color: #000;
+  line-height: 10;
+  text-transform: uppercase;
+  color: var(--text, #000);
 
 }
 
@@ -70,6 +71,14 @@
     color: #ececec;
     font-weight: 400;
     
+}
+
+.siteBrand.title {
+  font-size: 2.5rem;
+  font-weight: 500;
+  line-height: 10;
+  text-transform: uppercase;
+  color: var(--text, #000);
 }
 
 h2 {
@@ -122,8 +131,7 @@ h2 {
     top: 100%;
     left: 0;
     width: 100%;
-    max-height: calc(100vh - 100%);
-    max-height: calc(100dvh - 5.5rem);
+   height: 100vh;
     overflow-y: auto;
     background-color: var(--bg, #ffffff);
     border-bottom: 1px solid var(--border, #C8C4BC);

@@ -44,7 +44,7 @@ export const Header: React.FC<SiteHeaderProps> = ({ className = "" }) => {
             alt="Paulibaby logo"
             className={styles.brandLogo}
           />
-          <span className={styles.brandText}>Paulibaby</span>
+          <span className={styles.brandText}><span className={styles.siteBrand.title}>Paulibaby</span></span>
         </Link>
       </div>
 
