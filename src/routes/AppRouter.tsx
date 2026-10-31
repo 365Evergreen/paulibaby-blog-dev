@@ -31,6 +31,7 @@ export function AppRouter() {
           <Route path="/" element={<AppShell />}>
             <Route index element={<Home />} />
             <Route path="/archive" element={<Archive />} />
+            <Route path="/archive/:slug" element={<Archive />} />
             <Route path="/sign-in" element={<SignInPage />} />
             <Route path="/posts/:category/:slug" element={<SinglePostPage />} />
             <Route path="/posts/:slug" element={<SinglePostPage />} />
