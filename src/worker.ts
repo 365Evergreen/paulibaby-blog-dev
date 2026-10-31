@@ -19,7 +19,7 @@
  *   GET  /api/posts/:slug   → get single post
  *   GET  /api/pages/:slug   → get single published page (slug or numeric id) with its template
  *
- * R2: media lives in UPLOADS (paulibaby-blog-uploads), served at uploads.paulibaby.com.
+ * R2: media lives in UPLOADS (paulibaby-blog-uploads), served at media.paulibaby.com.
  */
 
 import {
