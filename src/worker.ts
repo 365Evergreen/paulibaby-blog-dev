@@ -29,7 +29,7 @@ import {
   createSession,
   deleteSession,
   type AuthEnv,
-  type Identity,
+ 
 } from "./accessAuth";
 
 export interface Env extends AuthEnv {
@@ -662,7 +662,7 @@ export default {
 
       return json({
         key,
-        url: `https://uploads.paulibaby.com/${key}`,
+        url: `https://media.paulibaby.com/${key}`,
       }, 201);
     }
 
@@ -673,7 +673,7 @@ export default {
         key: obj.key,
         size: obj.size,
         uploaded: obj.uploaded.toISOString(),
-        url: `https://uploads.paulibaby.com/${obj.key}`,
+        url: `https://media.paulibaby.com/${obj.key}`,
       }));
       return json(objects);
     }
@@ -827,7 +827,7 @@ export default {
           thumbnail_key: dbRow?.thumbnail_key ?? "",
           created_at: dbRow?.created_at ?? obj.uploaded.toISOString(),
           updated_at: dbRow?.updated_at ?? "",
-          url: `https://uploads.paulibaby.com/${obj.key}`,
+          url: `https://media.paulibaby.com/${obj.key}`,
         };
       });
 

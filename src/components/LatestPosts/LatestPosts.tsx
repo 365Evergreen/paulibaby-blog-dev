@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   usePosts,
@@ -7,13 +7,7 @@ import {
 } from "../../hooks/usePosts"
 import styles from "./LatestPosts.module.css"
 
-interface LatestPostsProps {
-  excludePostId?: string
-}
-
-export default function LatestPosts({
-  excludePostId,
-}: LatestPostsProps) {
+export default function LatestPosts() {
   const navigate = useNavigate()
 
   /*
@@ -28,11 +22,21 @@ export default function LatestPosts({
   )
 
   /*
+   * Determine the featured post using the same logic as FeaturedPost:
+   * - Most recent post with a cover image, or
+   * - First post overall if none has a cover image
+   */
+  const featuredPostId = useMemo(() => {
+    const featured = posts.find((p) => p.cover_image) ?? posts[0]
+    return featured?.id
+  }, [posts])
+
+  /*
    * Remove the featured post before constructing the
    * five-post Latest layout.
    */
   const latestPosts = posts
-    .filter((post) => post.id !== excludePostId)
+    .filter((post) => post.id !== featuredPostId)
     .slice(0, 5)
 
   const handleNavigate = (post: Post) => {
