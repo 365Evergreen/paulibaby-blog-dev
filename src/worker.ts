@@ -50,6 +50,7 @@ interface Post {
   template_id: number | null;
   template_content: string;
   category_ids: number[];
+  categories: { id: number; name: string; slug: string }[];
   created_at: string;
   updated_at: string;
 }
@@ -149,6 +150,17 @@ async function getPostCategoryIds(db: D1Database, postId: number): Promise<numbe
     "SELECT category_id FROM post_categories WHERE post_id = ?"
   ).bind(postId).all<{ category_id: number }>();
   return rows.results.map((r: { category_id: any; }) => r.category_id);
+}
+
+async function getPostCategories(db: D1Database, postId: number): Promise<{ id: number; name: string; slug: string }[]> {
+  const rows = await db.prepare(
+    `SELECT c.id, c.name, c.slug 
+     FROM post_categories pc 
+     JOIN categories c ON c.id = pc.category_id 
+     WHERE pc.post_id = ? 
+     ORDER BY c.id`
+  ).bind(postId).all<{ id: number; name: string; slug: string }>();
+  return rows.results;
 }
 
 async function syncPostCategories(db: D1Database, postId: number, categoryIds: number[]): Promise<void> {
@@ -360,6 +372,7 @@ export default {
         results.results.map(async (p: any) => ({
           ...p,
           category_ids: await getPostCategoryIds(env.DB, p.id),
+          categories: await getPostCategories(env.DB, p.id),
         }))
       );
       return json(postsWithCats);
@@ -388,6 +401,7 @@ export default {
       ).bind(slug).first<Post>();
       if (!post) return json({ error: "Not found" }, 404);
       post.category_ids = await getPostCategoryIds(env.DB, post.id);
+      post.categories = await getPostCategories(env.DB, post.id);
       return json(post);
     }
 

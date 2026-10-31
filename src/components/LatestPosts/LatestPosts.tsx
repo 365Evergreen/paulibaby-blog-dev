@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { usePosts, type Post } from "../../hooks/usePosts"
 import styles from "./LatestPosts.module.css"
 
@@ -32,8 +33,9 @@ function VideoIndicator() {
 }
 
 /** Large lead card — full column width, tall image */
-function LeadCard({ post }: { post: Post }) {
- const typeLabel = post.type?.toUpperCase() ?? ""
+function LeadCard({ post, navigate }: { post: Post; navigate: ReturnType<typeof useNavigate> }) {
+  const typeLabel = post.type?.toUpperCase() ?? ""
+  const primaryCategory = post.categories?.[0]
   return (
     <article className={styles.leadCard} data-node-id="4:376">
       <a href={`/posts/${post.category_slug || "uncategorised"}/${post.slug}`} className={styles.imageLink}>
@@ -49,20 +51,35 @@ function LeadCard({ post }: { post: Post }) {
         <p className={styles.title} data-node-id="4:383">
           <a href={`/posts/${post.category_slug || "uncategorised"}/${post.slug}`} className={styles.titleLink}>{post.title}</a>
         </p>
-       <p className={styles.postExcerpt}> {truncateText(post.excerpt, 200)}</p>
-
+        <p className={styles.postExcerpt}> {truncateText(post.excerpt, 200)}</p>
         
-        <p className={styles.metaLine} data-node-id="4:384">
-          {typeLabel} | {formatLong(post.created_at)}
-        </p>
+        <div className={styles.metaRow}>
+          <p className={styles.metaLine} data-node-id="4:384">
+            {typeLabel} | {formatLong(post.created_at)}
+          </p>
+          {primaryCategory && (
+            <button
+              className={styles.categoryPill}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                navigate(`/archive?category=${encodeURIComponent(primaryCategory.slug)}`)
+              }}
+              title={`View all posts in ${primaryCategory.name}`}
+            >
+              {primaryCategory.name}
+            </button>
+          )}
+        </div>
       </div>
     </article>
   )
 }
 
 /** Smaller secondary card — 4-col grid row */
-function SecondaryCard({ post }: { post: Post }) {
-const typeLabel = post.type?.toUpperCase() ?? ""
+function SecondaryCard({ post, navigate }: { post: Post; navigate: ReturnType<typeof useNavigate> }) {
+  const typeLabel = post.type?.toUpperCase() ?? ""
+  const primaryCategory = post.categories?.[0]
   return (
     <article className={styles.secondaryCard} data-node-id="4:393">
       <a href={`/posts/${post.category_slug || "uncategorised"}/${post.slug}`} className={styles.imageLink}>
@@ -78,9 +95,24 @@ const typeLabel = post.type?.toUpperCase() ?? ""
         <p className={styles.title} data-node-id="4:400">
           <a href={`/posts/${post.category_slug || "uncategorised"}/${post.slug}`} className={styles.titleLink}>{post.title}</a>
         </p>
-        <p className={styles.metaLine} data-node-id="4:401">
-          {typeLabel} | {formatLong(post.created_at)}
-        </p>
+        <div className={styles.metaRow}>
+          <p className={styles.metaLine} data-node-id="4:401">
+            {typeLabel} | {formatLong(post.created_at)}
+          </p>
+          {primaryCategory && (
+            <button
+              className={styles.categoryPill}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                navigate(`/archive?category=${encodeURIComponent(primaryCategory.slug)}`)
+              }}
+              title={`View all posts in ${primaryCategory.name}`}
+            >
+              {primaryCategory.name}
+            </button>
+          )}
+        </div>
       </div>
     </article>
   )
@@ -102,6 +134,7 @@ function Skeleton() {
 }
 
 export default function LatestPosts({ category }: { category?: string }) {
+  const navigate = useNavigate()
   const { posts, loading, error } = usePosts(undefined, 50, category)
   const [visible, setVisible] = useState(INITIAL)
 
@@ -129,20 +162,20 @@ export default function LatestPosts({ category }: { category?: string }) {
 
       {/* Lead row — 2-col */}
       <div className={styles.leadRow} data-node-id="4:375">
-        {lead.map((post) => <LeadCard key={post.id} post={post} />)}
+        {lead.map((post) => <LeadCard key={post.id} post={post} navigate={navigate} />)}
       </div>
 
       {/* Secondary row — 4-col */}
       {secondary.length > 0 && (
         <div className={styles.secondaryRow} data-node-id="4:392">
-          {secondary.map((post) => <SecondaryCard key={post.id} post={post} />)}
+          {secondary.map((post) => <SecondaryCard key={post.id} post={post} navigate={navigate} />)}
         </div>
       )}
 
       {/* Overflow grid — load-more batches */}
       {overflow.length > 0 && (
         <div className={styles.overflowRow}>
-          {overflow.map((post) => <SecondaryCard key={post.id} post={post} />)}
+          {overflow.map((post) => <SecondaryCard key={post.id} post={post} navigate={navigate} />)}
         </div>
       )}
 

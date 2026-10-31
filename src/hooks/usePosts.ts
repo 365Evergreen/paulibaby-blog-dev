@@ -12,6 +12,7 @@ export interface Post {
   type: PostType
   duration: string | null
   created_at: string
+  categories?: { id: number; name: string; slug: string }[]
 }
 
 export interface PostDetail extends Post {
