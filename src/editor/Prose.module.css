@@ -67,3 +67,40 @@
 .prose [data-callout] > * + * {
   margin-top: 0.5em;
 }
+
+.prose [data-type="columns"] {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.prose [data-type="columns"][data-count="3"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.prose [data-type="column"] {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.prose iframe,
+.prose video {
+  max-width: 100%;
+}
+
+.prose [data-type="accordion"] {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+}
+
+.prose summary {
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .prose [data-type="columns"],
+  .prose [data-type="columns"][data-count="3"] {
+    grid-template-columns: 1fr;
+  }
+}

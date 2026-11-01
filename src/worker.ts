@@ -31,12 +31,20 @@ import {
   type AuthEnv,
  
 } from "./accessAuth";
+import { ContentError, getPointers, publishedContent, type ContentIdentity } from "./content/revisionStore";
+import { serveMedia } from "./content/serveMedia";
+import { handleEditorMetadataRequest } from "./content/editorMetadataApi";
+import { handleContentRequest } from "./content/contentApi";
+import { validatePageDocument, PAGE_SCHEMA_VERSION } from "./content/editorArtifact";
 
 export interface Env extends AuthEnv {
   DB: D1Database;
   media: R2Bucket;
   CONTENT: R2Bucket;
   ASSETS: Fetcher;
+  CONTENT_API_ENABLED?: string;
+  PUBLIC_JSON_ENABLED?: string;
+  EDITOR_UI_ENABLED?: string;
 }
 
 interface Post {
@@ -134,6 +142,40 @@ function json(data: unknown, status = 200): Response {
     status,
     headers: { "Content-Type": "application/json", ...CORS },
   });
+}
+
+async function hasDocumentSchema(env: Env): Promise<boolean> {
+  return !!await env.DB.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'document_content'").first();
+}
+
+async function publicDocument(env: Env, identity: ContentIdentity): Promise<unknown | null> {
+  if (!await hasDocumentSchema(env)) return null;
+  const pointers = await getPointers(env, identity);
+  if (!pointers) return null;
+  if (env.PUBLIC_JSON_ENABLED !== "true") throw new ContentError(503, "Structured public rendering is not enabled");
+  const document = await publishedContent(env, identity);
+  const validated = validatePageDocument(document);
+  if (!validated.ok) throw new ContentError(503, `Published revision failed schema validation: ${validated.errors.join("; ")}`);
+  return validated.document;
+}
+
+async function publicContentError(error: unknown): Promise<Response> {
+  if (error instanceof ContentError) return json({ error: error.message }, error.status);
+  console.error(JSON.stringify({ event: "public_content_failure", message: error instanceof Error ? error.message : String(error) }));
+  return json({ error: "Published content storage unavailable" }, 503);
+}
+
+async function legacyWriteGuard(env: Env, kind: "page" | "post"): Promise<string> {
+  if (!await hasDocumentSchema(env)) return "";
+  const table = kind === "page" ? "pages" : "posts";
+  return ` AND NOT EXISTS (SELECT 1 FROM document_content dc WHERE dc.kind = '${kind}' AND dc.record_id = ${table}.id)`;
+}
+
+async function legacyWriteFailure(env: Env, identity: ContentIdentity): Promise<Response> {
+  if (await hasDocumentSchema(env) && await getPointers(env, identity)) {
+    return json({ error: "Record enrolled in structured editing; legacy writes and publication are blocked." }, 409);
+  }
+  return json({ error: "Not found" }, 404);
 }
 
 function slugify(text: string): string {
@@ -345,6 +387,19 @@ export default {
       if (!identity) return json({ error: "Unauthorized" }, 401);
       // Editors can create and edit content but not permanently delete anything.
       if (identity.role === "editor" && method === "DELETE") return json({ error: "Forbidden" }, 403);
+      if (path === "/api/admin/editor/status" && method === "GET") {
+        return json({ enabled: env.CONTENT_API_ENABLED === "true" && env.EDITOR_UI_ENABLED === "true" });
+      }
+      if (env.CONTENT_API_ENABLED === "true") {
+        const metadataResponse = await handleEditorMetadataRequest(request, env);
+        if (metadataResponse) return metadataResponse;
+        const contentResponse = await handleContentRequest(request, env, (document) => {
+          const result = validatePageDocument(document);
+          if (!result.ok) throw new ContentError(400, result.errors.join("; "));
+          return { document: result.document, schemaVersion: PAGE_SCHEMA_VERSION };
+        });
+        if (contentResponse) return contentResponse;
+      }
 
       // Sign-in entry point: send the user on to the app.
       if (path === "/api/admin/login" && method === "GET") {
@@ -355,6 +410,8 @@ export default {
     }
 
     // ===== PUBLIC API =====
+    const mediaResponse = await serveMedia(request, env.media);
+    if (mediaResponse) return mediaResponse;
 
     // --- List published posts ---
     if (path === "/api/posts" && method === "GET") {
@@ -362,10 +419,13 @@ export default {
       const whereClause = catFilter
         ? `WHERE p.published = 1 AND ${catFilter.clause}`
         : "WHERE p.published = 1";
+      const structuredFilter = await hasDocumentSchema(env)
+        ? " AND NOT EXISTS (SELECT 1 FROM document_content dc WHERE dc.kind = 'post' AND dc.record_id = p.id AND dc.published_key IS NULL)"
+        : "";
       const results = await env.DB.prepare(
         `SELECT p.id, p.slug, p.title, p.excerpt, p.cover_image, p.created_at, ${CATEGORY_SLUG_SQL}
          FROM posts p
-         ${whereClause}
+         ${whereClause}${structuredFilter}
          ORDER BY p.created_at DESC`
       ).bind(...(catFilter?.binds ?? [])).all();
       const postsWithCats = await Promise.all(
@@ -390,7 +450,10 @@ export default {
         const row = await env.DB.prepare("SELECT id, template_type, schema FROM templates WHERE id = ?").bind(page.template_id).first<Template>();
         if (row) template = { id: row.id, template_type: row.template_type, schema: JSON.parse(row.schema) as TemplateSchema };
       }
-      return json({ ...formatPostTemplate(page), template });
+      try {
+        const document = await publicDocument(env, { kind: "page", id: page.id });
+        return json({ ...formatPostTemplate(page), template, ...(document === null ? {} : { document, content_format: "structured" }) });
+      } catch (error) { return publicContentError(error); }
     }
 
     const postMatch = path.match(/^\/api\/posts\/([^/]+)$/);
@@ -402,7 +465,10 @@ export default {
       if (!post) return json({ error: "Not found" }, 404);
       post.category_ids = await getPostCategoryIds(env.DB, post.id);
       post.categories = await getPostCategories(env.DB, post.id);
-      return json(post);
+      try {
+        const document = await publicDocument(env, { kind: "post", id: post.id });
+        return json({ ...post, ...(document === null ? {} : { document, content_format: "structured" }) });
+      } catch (error) { return publicContentError(error); }
     }
 
     // ===== ADMIN API =====
@@ -504,6 +570,8 @@ export default {
     const adminPostMatch = path.match(/^\/api\/admin\/posts\/(\d+)$/);
     if (adminPostMatch) {
       const id = parseInt(adminPostMatch[1]);
+      const structured = await hasDocumentSchema(env) && await getPointers(env, { kind: "post", id });
+      if (structured && method === "PUT") return json({ error: "This record uses structured content. Use the new editor; legacy writes are blocked." }, 409);
 
       if (method === "GET") {
         const post = await env.DB.prepare("SELECT * FROM posts WHERE id = ?")
@@ -524,8 +592,8 @@ export default {
         }
         const clash = await env.DB.prepare("SELECT id FROM posts WHERE slug = ? AND id != ?").bind(slug, id).first();
         if (clash) return json({ error: "A post with this slug already exists" }, 409);
-        await env.DB.prepare(
-          "UPDATE posts SET slug = ?, title = ?, excerpt = ?, body = ?, cover_image = ?, published = ?, template_id = ?, template_content = ?, updated_at = datetime('now') WHERE id = ?"
+        const result = await env.DB.prepare(
+          `UPDATE posts SET slug = ?, title = ?, excerpt = ?, body = ?, cover_image = ?, published = ?, template_id = ?, template_content = ?, updated_at = datetime('now') WHERE id = ?${await legacyWriteGuard(env, "post")}`
         ).bind(
           slug,
           body.title || "",
@@ -537,6 +605,7 @@ export default {
           template.value.content,
           id
         ).run();
+        if (!result.meta.changes) return legacyWriteFailure(env, { kind: "post", id });
         await syncPostCategories(env.DB, id, body.category_ids || []);
         return json({ success: true });
       }
@@ -546,10 +615,11 @@ export default {
         if (![0, 1, 3].includes(Number(body.published))) {
           return json({ error: "published must be 0, 1 or 3" }, 400);
         }
+        if (structured && Number(body.published) === 1) return json({ error: "Publish the expected structured revision through the publish endpoint." }, 409);
         const result = await env.DB.prepare(
-          "UPDATE posts SET published = ?, updated_at = datetime('now') WHERE id = ?"
+          `UPDATE posts SET published = ?, updated_at = datetime('now') WHERE id = ?${Number(body.published) === 1 ? await legacyWriteGuard(env, "post") : ""}`
         ).bind(Number(body.published), id).run();
-        if (!result.meta.changes) return json({ error: "Not found" }, 404);
+        if (!result.meta.changes) return legacyWriteFailure(env, { kind: "post", id });
         return json({ success: true, published: Number(body.published) });
       }
 
@@ -596,6 +666,8 @@ export default {
     const adminPageMatch = path.match(/^\/api\/admin\/pages\/(\d+)$/);
     if (adminPageMatch) {
       const id = parseInt(adminPageMatch[1]);
+      const structured = await hasDocumentSchema(env) && await getPointers(env, { kind: "page", id });
+      if (structured && method === "PUT") return json({ error: "This record uses structured content. Use the new editor; legacy writes are blocked." }, 409);
 
       if (method === "GET") {
         const page = await env.DB.prepare("SELECT * FROM pages WHERE id = ?").bind(id).first<Post>();
@@ -615,7 +687,7 @@ export default {
         const clash = await env.DB.prepare("SELECT id FROM pages WHERE slug = ? AND id != ?").bind(slug, id).first();
         if (clash) return json({ error: "A page with this slug already exists" }, 409);
         const result = await env.DB.prepare(
-          "UPDATE pages SET slug = ?, title = ?, excerpt = ?, body = ?, cover_image = ?, published = ?, template_id = ?, template_content = ?, updated_at = datetime('now') WHERE id = ?"
+          `UPDATE pages SET slug = ?, title = ?, excerpt = ?, body = ?, cover_image = ?, published = ?, template_id = ?, template_content = ?, updated_at = datetime('now') WHERE id = ?${await legacyWriteGuard(env, "page")}`
         ).bind(
           slug,
           body.title || "",
@@ -627,7 +699,7 @@ export default {
           template.value.content,
           id
         ).run();
-        if (!result.meta.changes) return json({ error: "Not found" }, 404);
+        if (!result.meta.changes) return legacyWriteFailure(env, { kind: "page", id });
         return json({ success: true });
       }
 
@@ -636,10 +708,11 @@ export default {
         if (![0, 1, 3].includes(Number(body.published))) {
           return json({ error: "published must be 0, 1 or 3" }, 400);
         }
+        if (structured && Number(body.published) === 1) return json({ error: "Publish the expected structured revision through the publish endpoint." }, 409);
         const result = await env.DB.prepare(
-          "UPDATE pages SET published = ?, updated_at = datetime('now') WHERE id = ?"
+          `UPDATE pages SET published = ?, updated_at = datetime('now') WHERE id = ?${Number(body.published) === 1 ? await legacyWriteGuard(env, "page") : ""}`
         ).bind(Number(body.published), id).run();
-        if (!result.meta.changes) return json({ error: "Not found" }, 404);
+        if (!result.meta.changes) return legacyWriteFailure(env, { kind: "page", id });
         return json({ success: true, published: Number(body.published) });
       }
 

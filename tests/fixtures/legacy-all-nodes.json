@@ -1,0 +1,48 @@
+{
+  "type": "doc",
+  "content": [
+    { "type": "heading", "attrs": { "level": 1, "textAlign": "center" }, "content": [{ "type": "text", "text": "All legacy nodes" }] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "Second heading" }] },
+    { "type": "heading", "attrs": { "level": 3 }, "content": [{ "type": "text", "text": "Third heading" }] },
+    { "type": "paragraph", "attrs": { "textAlign": "right" }, "content": [
+      { "type": "text", "text": "Bold", "marks": [{ "type": "bold" }] },
+      { "type": "text", "text": "Italic", "marks": [{ "type": "italic" }] },
+      { "type": "text", "text": "Strike", "marks": [{ "type": "strike" }] },
+      { "type": "text", "text": "Underline", "marks": [{ "type": "underline" }] },
+      { "type": "text", "text": "Code", "marks": [{ "type": "code" }] },
+      { "type": "hardBreak" },
+      { "type": "text", "text": "Link", "marks": [{ "type": "link", "attrs": { "href": "https://example.com", "target": "_blank", "rel": "noopener noreferrer", "class": null } }] }
+    ] },
+    { "type": "bulletList", "content": [
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "First bullet" }] }] },
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Second bullet" }] }] }
+    ] },
+    { "type": "orderedList", "attrs": { "start": 4, "type": "a" }, "content": [
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Numbered item" }] }] }
+    ] },
+    { "type": "blockquote", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Quoted text" }] }] },
+    { "type": "codeBlock", "attrs": { "language": "typescript" }, "content": [{ "type": "text", "text": "const value = '<safe>';" }] },
+    { "type": "horizontalRule" },
+    { "type": "callout", "attrs": { "variant": "info" }, "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Info callout" }] }] },
+    { "type": "callout", "attrs": { "variant": "warning" }, "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Warning callout" }] }] },
+    { "type": "callout", "attrs": { "variant": "success" }, "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Success callout" }] }] },
+    { "type": "columns", "attrs": { "count": 2 }, "content": [
+      { "type": "column", "attrs": { "width": "50%" }, "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Column one" }] }] },
+      { "type": "column", "attrs": { "width": "50%" }, "content": [{ "type": "accordion", "content": [
+        { "type": "accordionHeader", "content": [{ "type": "text", "text": "Accordion title" }] },
+        { "type": "accordionContent", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Accordion content" }] }] }
+      ] }] }
+    ] },
+    { "type": "columns", "attrs": { "count": 3 }, "content": [
+      { "type": "column", "content": [{ "type": "paragraph" }] },
+      { "type": "column", "content": [{ "type": "paragraph" }] },
+      { "type": "column", "content": [{ "type": "paragraph" }] }
+    ] },
+    { "type": "image", "attrs": { "src": "https://media.paulibaby.com/fixture.png", "alt": "Fixture image", "title": "Image title", "width": 320, "height": 240, "containerStyle": "width: 320px; height: auto; cursor: pointer", "wrapperStyle": "display: inline-block; float: left; padding-right: 8px;" }, "marks": [{ "type": "link", "attrs": { "href": "/image" } }] },
+    { "type": "audio", "attrs": { "src": "https://media.paulibaby.com/fixture.mp3", "controls": true } },
+    { "type": "video", "attrs": { "src": "https://media.paulibaby.com/fixture.mp4", "controls": true } },
+    { "type": "youtube", "attrs": { "videoId": "dQw4w9WgXcQ" } },
+    { "type": "vimeo", "attrs": { "src": "https://vimeo.com/12345678", "width": 640, "height": 360 } },
+    { "type": "iframe", "attrs": { "src": "https://example.com/embed", "width": "100%", "height": "480" } }
+  ]
+}

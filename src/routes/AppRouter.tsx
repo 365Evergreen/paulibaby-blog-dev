@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route } from "react-router-dom";
 
 const AppShell = lazy(() => import("../layouts/AppShell"));
 const Home = lazy(() => import("../pages/HomePage/HomePage"));
@@ -22,12 +22,10 @@ const EditorShell = lazy(() => import("../layouts/EditorShell"));
 const RequireAuth = lazy(() => import("../auth/RequireAuth"));
 const SignInPage = lazy(() => import("../pages/SignInPage/SignInPage"));
 const PagesPage = lazy(() => import("../pages/DashboardPage/Pages/PagesPage"));
+const IntegratedEditorPage = lazy(() => import("../pages/IntegratedEditorPage"));
 
-export function AppRouter() {
-  return (
-    <BrowserRouter>
-      <Suspense fallback={<div role="status">Loading…</div>}>
-        <Routes>
+const router = createBrowserRouter(createRoutesFromElements(
+        <>
           <Route path="/" element={<AppShell />}>
             <Route index element={<Home />} />
             <Route path="/archive" element={<Archive />} />
@@ -38,6 +36,8 @@ export function AppRouter() {
             <Route path="/:slug" element={<SinglePage />} />
           </Route>
           <Route element={<RequireAuth />}>
+            <Route path="/admin/editor" element={<IntegratedEditorPage />} />
+            <Route path="/admin/editor/:kind/:id" element={<IntegratedEditorPage />} />
             <Route element={<EditorShell />}>
               <Route path="admin/dashboard" element={<DashboardPage />}>
                 <Route index element={<DashboardOverview />} />
@@ -57,10 +57,11 @@ export function AppRouter() {
               <Route path="/admin/media-admin" element={<MediaAdmin />} />
             </Route>
           </Route>
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
-  );
+        </>
+));
+
+export function AppRouter() {
+  return <Suspense fallback={<div role="status">Loading…</div>}><RouterProvider router={router} /></Suspense>;
 }
 
 export default AppRouter;

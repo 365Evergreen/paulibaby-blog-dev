@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "types": ["vite/client", "./worker-configuration.d.ts"]
+  },
+  "include": ["src/content", "src/editor/Prose.tsx", "src/pages/IntegratedEditorPage.tsx", "tests/revision-runtime.ts"]
+}
