@@ -8,13 +8,23 @@ replacement-node parity, and mounted-browser acceptance checks all pass.
 The immutable storage layer and read-only legacy compatibility renderer do not
 authorize production migration, deployment, settings, or credential changes.
 
-**Artifact import, authenticated mounting, and full browser acceptance are not
-complete yet.** Do not enable the new editing/public-rendering flags until the
-artifact compatibility row below is populated and verified.
+**A clean committed artifact is pinned; full browser/parity acceptance is not
+complete.** The editor repository reports production `NODE_ENV` substitution and
+a narrow public-renderer graph fixing the previously observed artifact blockers.
+The host imported all 12 checksum/size-verified assets without running app tests
+after the user-directed stop. Host loaders use the final manifest's shared
+`PageDocumentRenderer.css` and an absolute same-origin media base.
 
 | Deployment baseline | Editor artifact | Status |
 | --- | --- | --- |
-| `404cd240e1b2c5e62d34d212c3589394321cfac6` | Not imported | Storage and compatibility preparation only |
+| `404cd240e1b2c5e62d34d212c3589394321cfac6` | `55ae05d447f505fc20433da22fe85df9a2638799` (clean) | Imported; rollout disabled pending acceptance |
+
+Outstanding editor follow-ups are full new-control keyboard/axe acceptance,
+semantic rich-text validation wiring, and initial-load autosave behavior. See
+the editor repository's `docs/editor-parity-matrix.md` at the pinned revision.
+Host save/publish/media/dirty-navigation and public browser acceptance against
+this final artifact remain unverified. These gaps prohibit enabling the new
+rollout flags or removing Tiptap.
 
 ## Data flow
 
@@ -50,10 +60,13 @@ draft and published tokens and activate public visibility together.
 
 ## Flags and authentication
 
-`CONTENT_API_ENABLED=true` opts into the new pointer-aware Worker behavior.
-`PUBLIC_JSON_ENABLED=true` additionally enables public structured reads.
-Neither is enabled by this change in the production configuration. New admin
-routes must remain under the existing `RequireAuth` boundary.
+`CONTENT_API_ENABLED=true` enables the new save/publish/metadata endpoints.
+`PUBLIC_JSON_ENABLED=true` enables public structured reads.
+`EDITOR_UI_ENABLED=true` together with the content flag enables authenticated
+`/admin/editor` and `/admin/editor/{pages,posts}/:id` mounting.
+None are enabled in the production configuration. Existing structured-pointer
+write/publication protections stay active even when rollout flags are disabled;
+sites without the additive table retain their legacy behavior.
 
 The host adapter uses `src/lib/auth.ts`'s `apiFetch`; the stored session token is
 attached as the existing Authorization header. The editor must not read token
@@ -85,6 +98,42 @@ version come from the actual pinned DOM-free validator, not a parallel schema.
 | `PUT /api/admin/{pages,posts}/:id/content` | `{document, expectedRevision}`; null is create-only |
 | `POST /api/admin/{pages,posts}/:id/publish` | `{expectedRevision, expectedPublishedRevision}`; both required |
 | `PATCH /api/admin/{pages,posts}/:id/metadata` | Slug, excerpt, cover image with `expectedRevision`; no legacy body writes or published toggle |
+| `GET/POST /api/admin/editor/{pages,posts}` | Host-owned metadata list/new numeric identity; new records start unpublished and empty |
+
+The adapter follows the editor's actual PageStore contract: `load` returns
+`{document, revision, publishedRevision}`, not a document with revision fields.
+Remote calls require `{kind, id}`; standalone LocalStore string identities are
+rejected by the remote adapter. Null save tokens are create-only; omitted tokens
+are never treated as unconditional remote writes.
+
+## Importing a real pinned artifact
+
+The editor build must supply a clean committed source revision and
+`dist-embed\manifest.json` containing format, artifactVersion, sourceRevision,
+sourceDirty=false, schemaVersion, and SHA-256/size for every asset. Required
+exports are `editor.js`, `schema.js`, `renderer.js` and their declarations. The
+Worker imports only the DOM-free schema entry; public routes import only the
+read-only renderer with its own isolated React root.
+
+```powershell
+pnpm editor:import <verified-artifact-folder> <full-source-commit>
+pnpm build
+```
+
+Import verifies every manifest entry, disallows symlinks/traversal, refuses dirty
+builds and checksum/size mismatches, and stores immutable source assets under
+`vendor\editor\<commit>`. `editor-artifact.json` pins the source and manifest hash.
+The build re-verifies the pin and stages assets under
+`public\editor-assets\<commit>` before Vite copies them into `dist\client`.
+Generated public copies are ignored by Git; the verified vendor artifact and
+pin are committed, so no hidden cross-repository checkout is needed to build.
+No synthetic verification-test assets are ever imported as an editor.
+
+A coordinator-supplied dirty artifact may be imported with `import-local` only
+when `EDITOR_ALLOW_DIRTY=true` is explicitly set in that shell. The resulting
+development pin refuses a normal release build. Replace it with a clean
+committed artifact before release; never patch checksummed vendor files or add
+browser shims to conceal artifact failures.
 
 Bodies are bounded to **1 MiB UTF-8 JSON**, including chunked requests. Unsupported
 schema/identity/URLs/attributes must fail validation. Failures are explicit:
@@ -98,6 +147,13 @@ references must not fall back to D1 content. Fallback is only for a record with
 no structured pointers.
 
 ## Local-only existing-site upgrade verification
+
+**Verification is paused by user direction.** Do not run the app, authenticated
+requests, browser acceptance, or the local runtime/test commands below until
+the user explicitly authorizes testing again. These commands document the
+previous local procedure, not authorization to execute it. Full mounted-browser
+and replacement-node acceptance remains incomplete; retain Tiptap and leave
+production rollout flags disabled.
 
 Run these from this isolated checkout; never add `--remote` to a test command.
 Use the existing `DB`, `CONTENT`, and `media` bindings. Do not provision replacement
@@ -114,6 +170,7 @@ pnpm build
 pnpm exec wrangler d1 execute paulibaby-blog --local --persist-to .wrangler\editor-integration --file tests\fixtures\existing-site.sql
 pnpm exec wrangler d1 execute paulibaby-blog --local --persist-to .wrangler\editor-integration --file scripts\content-preflight.sql
 pnpm exec wrangler d1 execute paulibaby-blog --local --persist-to .wrangler\editor-integration --file migrations\0011_document_revisions.sql
+pnpm exec wrangler d1 execute paulibaby-blog --local --persist-to .wrangler\editor-integration --file migrations\0009_media.sql
 node --test tests\revisionStore.test.mjs tests\legacyRenderer.test.mjs
 pnpm exec tsc --noEmit -p tsconfig.editor-integration.json
 pnpm exec eslint src\content src\editor\Prose.tsx tests\revision-runtime.ts
@@ -133,6 +190,30 @@ D1/R2 bindings to verify racing saves, transactional publish, draft isolation,
 legacy-write protection, stored-session auth, editor deletion restrictions, slug
 rename, and missing referenced R2 failure. Stop that specific test process after
 checking the result.
+
+The existing media migration is applied above only when the isolated fixture
+lacks that table; never replay it against an existing site that already has it.
+The runtime harness also exercises real schema validation, both numeric content
+kinds, create-only conflicts, publish-followed-by-draft-save, flag-disabled
+legacy bypass rejection, corrupt references, upload/list/alt updates and
+same-origin media reads.
+
+For local browser acceptance, seed `tests\fixtures\browser-session.sql` into
+that **local-only** database, then run the actual host Worker:
+
+```powershell
+pnpm exec wrangler d1 execute paulibaby-blog --local --persist-to .wrangler\editor-integration --file tests\fixtures\browser-session.sql
+pnpm exec wrangler dev src\worker.ts --config wrangler.jsonc --local --persist-to .wrangler\editor-integration --assets dist\client --port 8795 --inspector-port 9295 --var CONTENT_API_ENABLED:true --var PUBLIC_JSON_ENABLED:true --var EDITOR_UI_ENABLED:true --show-interactive-dev-session=false
+```
+
+At `http://127.0.0.1:8795`, set the fixture value
+`local-integration-browser-session` under the host's
+`paulibaby_admin_token` local-storage key. It is a deterministic local fixture,
+not a deployed credential or login-password substitute. Verify native artifact
+imports, save/conflict/publish, typed-route refresh, dirty anchor/back/forward
+navigation, expired authorization, media and public rendering. The host uses
+the router's blocker plus a discard dialog, and refresh uses `beforeunload`.
+Stop the specific browser-check server when finished.
 
 The production build uses Cloudflare Vite: static client assets land in
 `dist\client`, and the generated Worker configuration lands in `dist\paulibaby`.

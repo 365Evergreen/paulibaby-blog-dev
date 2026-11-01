@@ -4,6 +4,14 @@ import {
 } from "./revisionStore";
 
 export type ValidateContent = (value: unknown, identity: ContentIdentity) => { document: unknown; schemaVersion: number };
+function validateStored(value: unknown, identity: ContentIdentity, validate: ValidateContent) {
+  try {
+    return validate(value, identity);
+  } catch (error) {
+    if (!(error instanceof ContentError)) throw error;
+    throw new ContentError(503, `Stored revision failed validation: ${error.message}`);
+  }
+}
 function response(data: unknown, status = 200) {
   return Response.json(data, { status, headers: { "Cache-Control": "no-store" } });
 }
@@ -29,7 +37,7 @@ export async function handleContentRequest(
         format: record.body.trim() || record.template_content.trim() !== "{}" ? "legacy" : "empty",
       });
       const stored = await readRevision(env, pointers.draft_key, pointers.draft_etag);
-      const { document } = validate(stored, identity);
+      const { document } = validateStored(stored, identity, validate);
       return response({ document, revision: pointers.draft_revision, publishedRevision: pointers.published_revision, format: "structured" });
     }
     if (match[3] === "content" && request.method === "PUT") {
@@ -45,7 +53,7 @@ export async function handleContentRequest(
       if (expected === null) throw new ContentError(400, "Save a draft before publishing");
       const published = revisionToken(body.expectedPublishedRevision, "expectedPublishedRevision");
       const pointers = await getPointers(env, identity);
-      if (pointers) validate(await readRevision(env, pointers.draft_key, pointers.draft_etag), identity);
+      if (pointers) validateStored(await readRevision(env, pointers.draft_key, pointers.draft_etag), identity, validate);
       return response(await publishRevision(env, identity, expected, published));
     }
     if (match[3] === "metadata" && request.method === "PATCH") {

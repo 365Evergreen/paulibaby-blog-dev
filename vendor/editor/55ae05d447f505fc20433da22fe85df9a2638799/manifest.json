@@ -1,0 +1,69 @@
+{
+  "format": "react-aria-page-builder-embed",
+  "artifactVersion": 1,
+  "sourceRevision": "55ae05d447f505fc20433da22fe85df9a2638799",
+  "sourceDirty": false,
+  "schemaVersion": 1,
+  "assets": [
+    {
+      "path": "PageDocumentRenderer.css",
+      "sha256": "a7dbe7a6d4670dcdfb9dad5840bc78ff9e429a4d914b431dc176b065d3be2533",
+      "size": 4143
+    },
+    {
+      "path": "chunks/PageDocumentRenderer-BAbDbWN4.js",
+      "sha256": "758d154c1f0a3a0c712c8c604703d5e81042d1bf02b76e67bd93052af67be6be",
+      "size": 438088
+    },
+    {
+      "path": "chunks/document-schema-VZR9R5MX.js",
+      "sha256": "45a4888c887fa8c8d1c78b4d82d51c7d922d69ec2a7d2569a8893ae6bec31cd6",
+      "size": 4381
+    },
+    {
+      "path": "chunks/rich-text-CfH5pQKh.js",
+      "sha256": "9d1d131dcf9a36205e6ce5a459fedfeac3263581f00a1235d57340306a29a5e6",
+      "size": 128922
+    },
+    {
+      "path": "editor.css",
+      "sha256": "c71570df8786e1b47c4baa6e311914ee48caa60ab3b1e9c38e6c242c2608384c",
+      "size": 27265
+    },
+    {
+      "path": "editor.d.ts",
+      "sha256": "1221ed5b8282798c0f1e55fd00822ee0477685a7b54644f91ba7af50c0688098",
+      "size": 2924
+    },
+    {
+      "path": "editor.js",
+      "sha256": "43fb84c235bc97f2b7bb807dd83898dda36256c0b08473c15aba4abd09453e63",
+      "size": 463826
+    },
+    {
+      "path": "renderer.css",
+      "sha256": "b0049303c964aecec35c3dae468458deec8f6432f9af31372a4c2ff4a7a0441a",
+      "size": 233
+    },
+    {
+      "path": "renderer.d.ts",
+      "sha256": "0ab92f958b4b3b939249f1ade2b2bc6cf114f97909ef65867493b8e47c00bfe1",
+      "size": 387
+    },
+    {
+      "path": "renderer.js",
+      "sha256": "d58c5378ef0a0e6dde4bcdbda641a147dce7a11ca22c41d3899f50a32aeaabc5",
+      "size": 539
+    },
+    {
+      "path": "schema.d.ts",
+      "sha256": "b68797fcae76ec18fa432e7fc50a1077ab739faaf78b016123a7dafa84aff6e6",
+      "size": 362
+    },
+    {
+      "path": "schema.js",
+      "sha256": "577c0ed6551eff7b79141b947ed15d73407ff86fa99476d2f71a1468f78d538f",
+      "size": 279
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { LegacyBody } from "../../content/LegacyBody";
+import { PublishedDocument } from "../../content/PublishedDocument";
 import RelatedPosts from "../../components/RelatedPosts/RelatedPosts";
 import styles from './SinglePostPage.module.css';
 
@@ -13,6 +14,8 @@ type Post = {
   cover_image: string | null;
   created_at: string;
   category_slug?: string | null;
+  document?: unknown;
+  content_format?: "structured";
 };
 
 export default function SinglePostPage() {
@@ -74,7 +77,7 @@ export default function SinglePostPage() {
             day: "numeric",
           })}
         </time>
-        <LegacyBody className={styles.singlePostFullBody} body={post.body} />
+        {post.content_format === "structured" ? <PublishedDocument document={post.document} /> : <LegacyBody className={styles.singlePostFullBody} body={post.body} />}
       </article>
 
       {post.category_slug && (

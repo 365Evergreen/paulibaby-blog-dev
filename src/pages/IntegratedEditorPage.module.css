@@ -1,0 +1,9 @@
+.index { max-width: 70rem; margin: 2rem auto; padding: 1.5rem; color: #201f1e; background: #fff; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding: 1rem; background: #f3f2f1; color: #201f1e; }
+.controls label { display: inline-flex; flex-direction: column; gap: 0.3rem; }
+.controls input, .controls select, .controls button { font: inherit; padding: 0.4rem; }
+.controls a, .index a { color: #005a9e; }
+.canvas { min-height: 70vh; }
+.message { padding: 0.75rem 1rem; }
+.mediaPicker { max-width: min(45rem, 90vw); max-height: 80vh; overflow: auto; color: #201f1e; background: #fff; }
+.mediaPicker input { display: block; width: 100%; margin-bottom: 1rem; }

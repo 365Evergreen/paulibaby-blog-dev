@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/editor-artifact.mjs verify && vite build",
+    "editor:import": "node scripts/editor-artifact.mjs import",
+    "test:integration": "node --test tests/*.test.mjs",
+    "typecheck:integration": "tsc --noEmit -p tsconfig.editor-integration.json",
     "preview": "vite preview",
     "deploy": "wrangler deploy",
     "cf-typegen": "wrangler types",

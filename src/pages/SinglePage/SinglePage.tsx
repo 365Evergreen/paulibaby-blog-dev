@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { ComponentProps, TemplateComponent } from "../../components/library/componentTypes";
 import { LegacyBody } from "../../content/LegacyBody";
+import { PublishedDocument } from "../../content/PublishedDocument";
 import { PageRenderer } from "../../page-builder/PageRenderer";
 import styles from "../SinglePostPage/SinglePostPage.module.css";
 
@@ -14,6 +15,8 @@ type PageData = {
   cover_image: string | null;
   template_content: Record<string, ComponentProps>;
   template: { schema: { components?: TemplateComponent[] } } | null;
+  document?: unknown;
+  content_format?: "structured";
 };
 
 export default function SinglePage() {
@@ -74,12 +77,12 @@ export default function SinglePage() {
           <img src={page.cover_image} alt={page.title} className={styles.singlePostCoverFull} />
         )}
         <h1>{page.title}</h1>
-        {page.body && (
+        {page.content_format === "structured" ? <PublishedDocument document={page.document} /> : page.body && (
           <LegacyBody className={styles.singlePostFullBody} body={page.body} />
         )}
       </article>
 
-      {components.length > 0 && (
+      {page.content_format !== "structured" && components.length > 0 && (
         <PageRenderer components={components} content={page.template_content} />
       )}
     </div>
