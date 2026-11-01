@@ -61,6 +61,13 @@ storage, implement another login/setup page, or rely on cookies. Editors retain
 the existing create/edit permission and cannot DELETE. Admin user-management
 restrictions remain unchanged.
 
+Media listing/upload reuse `/api/admin/media` and preserve the existing R2 key,
+alt text, title, caption, and dimensions. The host media adapter returns
+same-origin `/api/media/<encoded-key>` URLs so local R2 previews never fetch
+production uploads. This read-only streaming endpoint supports HEAD and byte
+ranges for audio/video; executable/unsupported file types are downloads with
+`nosniff`, not inline HTML. The existing media domain remains unchanged.
+
 Disabling public JSON rendering when structured pointers exist produces an
 explicit unavailable response, not legacy fallback or the latest draft.
 Disabling an editor UI does not make an R2-backed record safe to open in the old

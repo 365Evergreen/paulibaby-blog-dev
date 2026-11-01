@@ -70,6 +70,10 @@ export default {
       if (!current?.published_key) throw new Error("Missing published pointer");
       await env.CONTENT.delete(current.published_key);
       assert((await site.fetch(request(`/api/pages/${slug}`), hostEnv)).status === 503, "Missing referenced R2 content fails explicitly without legacy fallback");
+      const mediaKey = `runtime-${crypto.randomUUID()}.mp3`;
+      await env.media.put(mediaKey, "0123456789", { httpMetadata: { contentType: "audio/mpeg" } });
+      const mediaResponse = await site.fetch(new Request(`http://local/api/media/${mediaKey}`, { headers: { Range: "bytes=2-4" } }), hostEnv);
+      assert(mediaResponse.status === 206 && await mediaResponse.text() === "234", "Actual local R2 media range streams without production domain requests");
       return Response.json({ ok: true, checks });
     } catch (error) {
       console.error(error);

@@ -32,6 +32,7 @@ import {
  
 } from "./accessAuth";
 import { ContentError, getPointers, publishedContent, type ContentIdentity } from "./content/revisionStore";
+import { serveMedia } from "./content/serveMedia";
 
 export interface Env extends AuthEnv {
   DB: D1Database;
@@ -385,6 +386,8 @@ export default {
     }
 
     // ===== PUBLIC API =====
+    const mediaResponse = await serveMedia(request, env.media);
+    if (mediaResponse) return mediaResponse;
 
     // --- List published posts ---
     if (path === "/api/posts" && method === "GET") {
