@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { renderMarkdown } from "../../lib/renderMarkdown";
+import { LegacyBody } from "../../content/LegacyBody";
 import RelatedPosts from "../../components/RelatedPosts/RelatedPosts";
 import styles from './SinglePostPage.module.css';
 
@@ -74,10 +74,7 @@ export default function SinglePostPage() {
             day: "numeric",
           })}
         </time>
-        <div
-          className={styles.singlePostFullBody}
-          dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }}
-        />
+        <LegacyBody className={styles.singlePostFullBody} body={post.body} />
       </article>
 
       {post.category_slug && (

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { ComponentProps, TemplateComponent } from "../../components/library/componentTypes";
-import { renderMarkdown } from "../../lib/renderMarkdown";
+import { LegacyBody } from "../../content/LegacyBody";
 import { PageRenderer } from "../../page-builder/PageRenderer";
 import styles from "../SinglePostPage/SinglePostPage.module.css";
 
@@ -75,10 +75,7 @@ export default function SinglePage() {
         )}
         <h1>{page.title}</h1>
         {page.body && (
-          <div
-            className={styles.singlePostFullBody}
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(page.body) }}
-          />
+          <LegacyBody className={styles.singlePostFullBody} body={page.body} />
         )}
       </article>
 
