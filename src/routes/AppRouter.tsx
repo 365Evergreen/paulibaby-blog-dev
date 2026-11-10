@@ -34,6 +34,7 @@ const PdfGenerator = lazy(() => import("../browser-tools/tools/PdfGenerator"));
 const ImageConverter = lazy(() => import("../browser-tools/tools/ImageConverter"));
 const DataConverter = lazy(() => import("../browser-tools/tools/DataConverter"));
 const CryptoHasher = lazy(() => import("../browser-tools/tools/CryptoHasher"));
+const TextToSpeech = lazy(() => import("../browser-tools/tools/TextToSpeech"));
 
 const router = createBrowserRouter(createRoutesFromElements(
         <>
@@ -51,6 +52,7 @@ const router = createBrowserRouter(createRoutesFromElements(
               <Route path="image-converter" element={<ImageConverter />} />
               <Route path="data-converter" element={<DataConverter />} />
               <Route path="crypto-hasher" element={<CryptoHasher />} />
+              <Route path="text-to-speech" element={<TextToSpeech />} />
               <Route path="*" element={<ToolNotFound />} />
             </Route>
             <Route path="/posts/:category/:slug" element={<SinglePostPage />} />

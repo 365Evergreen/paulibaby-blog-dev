@@ -33,14 +33,17 @@ import { htmlToMarkdown } from "../src/browser-tools/tools/HtmlToMarkdown.logic.
 import { generatePdf } from "../src/browser-tools/tools/PdfGenerator.logic.ts";
 import { validateDimensions } from "../src/browser-tools/tools/ImageConverter.logic.ts";
 
-test("catalog has seven unique routes and searches names, descriptions and tags", () => {
-  assert.equal(tools.length, 7);
-  assert.equal(new Set(tools.map((tool) => tool.id)).size, 7);
+test("catalog has eight unique routes and searches names, descriptions and tags", () => {
+  assert.equal(tools.length, 8);
+  assert.equal(new Set(tools.map((tool) => tool.id)).size, 8);
   for (const tool of tools) {
     assert.equal(toolPath(tool.id), `/browser-tools/${tool.id}`);
     assert.ok(tool.name && tool.description && tool.tags.length);
   }
-  assert.equal(filterTools("").length, 7);
+  assert.equal(filterTools("").length, 8);
+  assert.equal(filterTools("tts")[0].id, "text-to-speech");
+  assert.equal(filterTools("audio")[0].id, "text-to-speech");
+  assert.equal(filterTools("wav")[0].id, "text-to-speech");
   assert.equal(filterTools("  PRETTIER ")[0].id, "formatter");
   assert.equal(filterTools("sharepoint")[0].id, "theme-designer");
   assert.equal(filterTools("object arrays")[0].id, "data-converter");

@@ -1,0 +1,53 @@
+Browser Tools local text-to-speech
+
+The application uses Transformers.js 4.3.2 (Hugging Face, Apache-2.0):
+https://github.com/huggingface/transformers.js
+https://github.com/huggingface/transformers.js/blob/main/LICENSE
+
+ONNX Runtime Web (Microsoft, MIT) is used for browser-local inference:
+https://github.com/microsoft/onnxruntime/blob/main/LICENSE
+
+The following Microsoft SpeechT5 models are downloaded on demand from
+Hugging Face, not bundled in the application:
+- Xenova/speecht5_tts, revision 1723781b8ce2d02f0400c8337be04ae8ee3d6d56,
+  q8 encoder and merged decoder (ONNX conversion of microsoft/speecht5_tts).
+- Xenova/speecht5_hifigan, revision cf980c3610d7b7f20919960031066ef7905737bd,
+  full-precision vocoder (ONNX conversion of microsoft/speecht5_hifigan).
+
+Model source and license declarations:
+https://huggingface.co/microsoft/speecht5_tts
+https://huggingface.co/microsoft/speecht5_hifigan
+https://github.com/microsoft/SpeechT5/blob/main/LICENSE
+
+speaker.npy is the unmodified 512-element speaker embedding
+spkrec-xvect/cmu_us_slt_arctic-wav-arctic_a0001.npy from the MIT-licensed
+Matthijs/cmu-arctic-xvectors dataset, extracted from spkrec-xvect.zip:
+https://huggingface.co/datasets/Matthijs/cmu-arctic-xvectors
+Source author: Matthijs Hollemans.
+The SLT speaker embedding was extracted from CMU ARCTIC, produced at Carnegie
+Mellon University. It is an anonymous preset, not voice cloning or a recording.
+CMU ARCTIC attribution and source: http://www.festvox.org/cmu_arctic/
+
+MIT License (SpeechT5)
+Copyright (c) Microsoft Corporation.
+
+MIT License (speaker embedding dataset)
+Copyright (c) Matthijs Hollemans.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

@@ -31,6 +31,7 @@ and system light/dark theme; each engine loads only when its tool is opened.
 | `/image-converter` | Canvas-based PNG/JPEG/WebP conversion, quality and aspect-locked resizing |
 | `/data-converter` | Quoted CSV/JSON conversion with comma, tab and semicolon delimiters |
 | `/crypto-hasher` | Text/file SHA checksums, UTF-8 Base64 and URI-component encode/decode |
+| `/text-to-speech` | Local English SpeechT5 synthesis, audio preview and mono 16 kHz PCM WAV download |
 
 Tool input and output stay in component memory and are never uploaded or saved.
 Leaving a tool discards its input/results. Existing site navigation/authentication
@@ -64,6 +65,53 @@ pnpm build
 
 The pnpm build policy explicitly denies the new transitive `core-js` postinstall;
 the browser tools do not require that install-time script.
+
+### Local text to speech
+
+**Not ready for dependable readings:** the current q8 model produced a valid
+downloadable WAV, but a local ASR check of "Hello world. This is a local voice
+test." recognized only "Hello." Speech completeness/accuracy remains unresolved.
+The UI warns explicitly. Unit tests cover the pipeline and file format, not
+spoken-word completeness. Do not ship this as a verified reading tool yet.
+
+Text to Speech is public and does not use a cloud synthesis API, microphone,
+system audio capture or the playback-only Web Speech API. Clicking **Generate
+audio** starts a dedicated module worker which loads Transformers.js 4.3.2 and
+Microsoft SpeechT5 on WebAssembly/CPU. Other routes, and opening this tool without
+generating, do not download the engine or models.
+
+First use downloads about 215 MB of pinned q8 encoder/decoder and full-precision
+HiFi-GAN vocoder weights from Hugging Face, plus the pinned Transformers.js browser
+module and ONNX WASM runtime files from jsDelivr. The browser module is imported
+only by the generation worker. Loading the official CDN distribution also keeps
+ONNX's 25.6 MiB WASM fallback out of Cloudflare's 25 MiB-per-static-asset limit.
+The installed engine package supplies build-time types, not native inference.
+The voice embedding is a small same-origin static asset. Remote hosts
+see ordinary file-download requests (and usual network metadata), never pasted
+text or generated audio. Models/runtime may be cached by the browser; eviction,
+disabled caching or cancelled downloads can require downloading again. No API
+key, backend endpoint or new environment variable is required.
+
+Use a modern desktop browser with WebAssembly/SIMD and at least 1 GB of available
+memory. A single WASM thread avoids requiring cross-origin isolation headers or
+WebGPU; it can be much slower than real time. Mobile/low-memory devices may fail.
+Text is split into short passages without model-token truncation. Numbers are
+read digit by digit; curly punctuation is normalized, and unsupported symbols or
+languages cause an explicit error instead of being silently dropped. This is an
+English voice, not a general multilingual reader, and pronunciation may need
+review. Output is a real 16-bit mono 16 kHz WAV file.
+
+Editing or clearing text, cancelling generation or leaving the tool discards old
+audio and prevents stale downloads. Active work is terminated, freeing the model;
+completed workers can reuse their model while the tool stays open. Nothing is
+saved apart from the browser's model/runtime cache or an explicit WAV download.
+
+Transformers.js uses Apache-2.0, ONNX Runtime uses MIT, and SpeechT5/HiFi-GAN and
+the selected CMU ARCTIC SLT embedding use MIT licenses. Sources, pinned revisions,
+attributions and MIT terms are in
+[`public/browser-tools/tts/NOTICE.txt`](public/browser-tools/tts/NOTICE.txt).
+The pnpm policy denies `onnxruntime-node` and `protobufjs` install scripts because
+this integration uses only the browser distribution, not native Node inference.
 
 ## Setup
 

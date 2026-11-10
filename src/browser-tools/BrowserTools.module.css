@@ -182,6 +182,10 @@
   height: 34rem;
   border: 1px solid var(--tools-border);
 }
+.audioPreview {
+  width: 100%;
+  min-width: 0;
+}
 .swatches {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
