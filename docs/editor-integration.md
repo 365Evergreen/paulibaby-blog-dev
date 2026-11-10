@@ -221,6 +221,23 @@ Do not replace the host `index.html` with the editor's standalone Pages app.
 
 ## Tiptap compatibility and removal gate
 
+### Production bundle regression
+
+The retained Tiptap vendor group includes `@tiptap`, `prosemirror-*`, lowlight
+and highlight.js without a `maxSize` subdivision. Size-based splitting created
+a circular dependency between the state and transform/view chunks: ProseMirror's
+`Transaction extends Transform` evaluated before `Transform` was initialized.
+The original matcher also missed the actual `prosemirror-*` package names.
+Keep this graph together while retaining the lazy editor vendor boundary.
+Do not restore a size cap without proving module initialization remains safe.
+
+`pnpm exec playwright install chromium` installs the browser needed by
+`pnpm test:editor-bundle`. That command builds the real production assets and
+imports each emitted editor vendor module in a fresh blank Chromium context.
+It does not visit authenticated pages or call authenticated APIs. The check
+reproduces the original initialization error before the bundling fix; it is
+not evidence of editor-page mounting, editing or save acceptance.
+
 | Active surface | Attributes/behavior | Legacy compatibility | Removal gate |
 | --- | --- | --- | --- |
 | Paragraph/headings h1-h3 | `textAlign`, heading `level` | Semantic HTML, safe alignment | New accessible text controls and round trips |

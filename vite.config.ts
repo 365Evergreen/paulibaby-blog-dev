@@ -13,8 +13,9 @@ export default defineConfig({
           groups: [
             {
               name: "editor-vendor",
-              test: /node_modules[\\/](?:@tiptap|prosemirror|lowlight|highlight\.js)[\\/]/,
-              maxSize: 400 * 1024,
+              test: /node_modules[\\/](?:@tiptap[\\/]|prosemirror-[^\\/]+[\\/]|lowlight[\\/]|highlight\.js[\\/])/,
+              // Keep the editor graph together: size splitting can put
+              // Transaction before its Transform superclass in a chunk cycle.
             },
           ],
         },
