@@ -7,6 +7,7 @@ import {
   ArrowRightLeft,
   ShieldCheck,
   Palette,
+  AudioLines,
 } from "lucide-react";
 import { filterTools, toolPath } from "../toolRegistry";
 import styles from "../BrowserTools.module.css";
@@ -19,6 +20,7 @@ const icons = {
   "image-converter": Image,
   "data-converter": ArrowRightLeft,
   "crypto-hasher": ShieldCheck,
+  "text-to-speech": AudioLines,
 };
 
 export default function ToolCatalog() {
@@ -29,7 +31,7 @@ export default function ToolCatalog() {
       <h2 id="available-tools">Available tools ({visible.length})</h2>
       {!visible.length && (
         <p role="status">
-          No tools match this search. Clear the search to see all seven tools.
+          No tools match this search. Clear the search to see all tools.
         </p>
       )}
       <div className={styles.cards}>

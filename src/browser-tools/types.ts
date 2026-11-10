@@ -5,7 +5,8 @@ export type ToolId =
   | "pdf-generator"
   | "image-converter"
   | "data-converter"
-  | "crypto-hasher";
+  | "crypto-hasher"
+  | "text-to-speech";
 
 export interface ToolDefinition {
   id: ToolId;

@@ -34,6 +34,14 @@ export const tools: readonly ToolDefinition[] = [
     tags: ["pdf", "jspdf", "document", "download"],
   },
   {
+    id: "text-to-speech",
+    name: "Text to Speech",
+    description:
+      "Read pasted English text aloud with a local model and download the audio as WAV.",
+    category: "document",
+    tags: ["tts", "speech", "audio", "voice", "wav", "download", "local"],
+  },
+  {
     id: "image-converter",
     name: "Image Converter & Resizer",
     description: "Resize and convert local images to PNG, JPEG or WebP.",

@@ -6,13 +6,7 @@
     "requiresAuth": false,
     "hasMegaMenu": false
   },
-  {
-    "id": 6,
-    "title": "Browser Tools",
-    "href": "/browser-tools",
-    "requiresAuth": false,
-    "hasMegaMenu": false
-  },
+ 
   {
     "id": 2,
     "title": "Music",
@@ -48,6 +42,23 @@
     "href": "/archive?category=radio-and-podcasts",
     "requiresAuth": false,
     "hasMegaMenu": false
+  }, {
+    "id": 6,
+    "title": "Browser Tools",
+    "href": "/browser-tools",
+    "requiresAuth": false,
+    "hasMegaMenu": true,
+    "columns": [
+      {
+        "heading": "Development",
+        "links":[{"label": "Code formatter",
+        "href": "/browser-tools/code-formatter"
+        },{"label": "JSON CSV converter",
+        "href": "/browser-tools/data-converter"
+        },{"label": "HTML to Markdown",
+        "href": "/browser-tools/html-to-markdown"
+        }]
+  }]
   },
   {
     "id": 1,
@@ -85,4 +96,5 @@
     "href": "/sign-in",
     "hasMegaMenu": false
   }
+  
 ]
