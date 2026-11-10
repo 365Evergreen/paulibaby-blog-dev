@@ -65,7 +65,7 @@
   {
     "id": 2,
     "title": "Music",
-    "href": "/archive?category=music",
+    "href": "/music",
     "requiresAuth": false,
     "hasMegaMenu": true,
     "columns": [
@@ -77,8 +77,11 @@
             "href": "/archive"
           },
           {
-            "label": "Music ",
-            "href": "/admin/post/create"
+            "label": "Bob Dylan",
+            "href": "/bob-dylan"
+          },{
+            "label": "The Beatles",
+            "href": "/the-beatles"
           }
         ]
       }
