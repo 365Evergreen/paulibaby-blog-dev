@@ -3,6 +3,7 @@ export type ToolId =
   | "formatter"
   | "html-to-md"
   | "pdf-generator"
+  | "publication-designer"
   | "image-converter"
   | "data-converter"
   | "crypto-hasher";

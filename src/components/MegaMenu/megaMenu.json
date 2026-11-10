@@ -14,6 +14,13 @@
     "hasMegaMenu": false
   },
   {
+    "id": 7,
+    "title": "Publisher",
+    "href": "/publisher",
+    "requiresAuth": false,
+    "hasMegaMenu": false
+  },
+  {
     "id": 2,
     "title": "Music",
     "href": "/archive?category=music",
