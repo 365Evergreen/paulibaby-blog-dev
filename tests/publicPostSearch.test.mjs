@@ -59,3 +59,12 @@ test("queries are literal bound values, legacy schemas work, and results are bou
     assert.ok(results.every((post) => post.slug.startsWith("the-beatles")));
   } finally { sqlite.close(); }
 });
+
+test("scoped results sort by publication date even when creation order differs", async () => {
+  const { db, sqlite } = searchDatabase();
+  try {
+    sqlite.exec("UPDATE posts SET published_date = '1969-09-26'; UPDATE posts SET published_date = '2024-01-01' WHERE id = 1");
+    const results = await (await searchPublicPosts(params(), db, true)).json();
+    assert.deepEqual(results.map((post) => post.id), [1, 7, 6, 2]);
+  } finally { sqlite.close(); }
+});

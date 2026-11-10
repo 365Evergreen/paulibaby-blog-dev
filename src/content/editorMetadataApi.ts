@@ -13,7 +13,7 @@ export async function handleEditorMetadataRequest(request: Request, env: Content
         CASE WHEN dc.draft_key IS NOT NULL THEN 'structured'
              WHEN trim(r.body) != '' OR trim(r.template_content) != '{}' THEN 'legacy' ELSE 'empty' END AS format
         FROM ${table} r LEFT JOIN document_content dc ON dc.kind = ? AND dc.record_id = r.id
-        ORDER BY r.updated_at DESC`,
+        ORDER BY ${kind === "post" ? "COALESCE(r.published_date, date(r.created_at)) DESC, r.id DESC" : "r.updated_at DESC"}`,
       ).bind(kind).all();
       return Response.json(result.results, { headers: { "Cache-Control": "no-store" } });
     }
@@ -23,7 +23,7 @@ export async function handleEditorMetadataRequest(request: Request, env: Content
         || !body.title.trim() || body.title.trim().length > 200) throw new ContentError(400, "Title must contain 1 to 200 characters");
       for (const key of Object.keys(body)) if (key !== "title") throw new ContentError(400, `Unsupported creation field: ${key}`);
       const slug = `${kind}-${crypto.randomUUID()}`;
-      const result = await env.DB.prepare(`INSERT INTO ${table} (title, slug, body, template_content, published) VALUES (?, ?, '', '{}', 0)`)
+      const result = await env.DB.prepare(`INSERT INTO ${table} (title, slug, body, template_content, published${kind === "post" ? ", published_date" : ""}) VALUES (?, ?, '', '{}', 0${kind === "post" ? ", date('now')" : ""})`)
         .bind(body.title.trim(), slug).run();
       return Response.json({ id: result.meta.last_row_id, kind, slug }, { status: 201, headers: { "Cache-Control": "no-store" } });
     }

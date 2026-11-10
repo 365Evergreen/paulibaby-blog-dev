@@ -11,6 +11,7 @@ export interface AdminPost {
   published: number;
   category_ids: number[];
   created_at: string;
+  published_date?: string | null;
   updated_at: string;
 }
 
@@ -45,5 +46,5 @@ export const setPostStatus = async (id: number, published: number): Promise<void
 };
 
 // D1 datetime('now') is UTC without a zone suffix
-export const toTime = (s: string) => new Date(s.replace(" ", "T") + "Z").getTime();
+export const toTime = (s: string) => new Date(/^\d{4}-\d{2}-\d{2}$/.test(s) ? `${s}T00:00:00` : s.replace(" ", "T") + "Z").getTime();
 export const fmtDate = (s: string) => new Date(toTime(s)).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });

@@ -1,3 +1,5 @@
+import { POST_DATE_ORDER } from "./postPublicationDate.ts";
+
 interface SearchSource { slug: string }
 interface CategoryScope { slug: string }
 
@@ -56,7 +58,7 @@ export async function searchPublicPosts(
      ${documentSchema ? "AND NOT EXISTS (SELECT 1 FROM document_content dc WHERE dc.kind = 'post' AND dc.record_id = p.id AND dc.published_key IS NULL)" : ""}
      AND (${scopes.map(matchesScope).join(" OR ")})
      AND (INSTR(${normalizedColumn("p.title")}, ?) > 0 OR INSTR(${normalizedColumn("COALESCE(p.excerpt, '')")}, ?) > 0 OR ${matchesScope()})
-     ORDER BY p.created_at DESC, p.id DESC LIMIT 50`,
+     ORDER BY ${POST_DATE_ORDER} LIMIT 50`,
   ).bind(...scopes.flatMap((scope) => [scope, scope, scope]), query, query, query, query, query).all<ScopedPostResult>();
   return Response.json(result.results);
 }

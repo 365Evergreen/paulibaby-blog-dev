@@ -32,6 +32,30 @@ and posts are excluded, including structured records without published pointers.
 The query cannot override the stored source scope. Search does not access drafts,
 change templates or enable the staged editor rollout.
 
+## Post publication dates
+
+The post editor's selected `YYYY-MM-DD` publication date is saved to D1
+`posts.published_date` on creation and update. Past dates are valid; dates are
+display/order metadata, not a future-publishing scheduler. A blank date uses
+today's UTC date; an update that omits the field preserves the stored date.
+Post lists (public, admin and scoped search) sort by publication date descending,
+with the creation date as fallback for legacy null values and ID as a stable tie
+breaker. Public cards and post headers display the same publication date.
+
+For an existing database, inspect `PRAGMA table_info(posts)` before upgrading.
+If `published_date` is absent, apply `0012_post_published_date.sql` through the
+site's established migration process; it adds the column and backfills existing
+posts from `created_at`. If the column already exists, **do not run its
+`ALTER TABLE` statement**: preserve existing dates and apply only its null-date
+backfill and index statements through your migration process. No remote database
+is modified by building or running tests. Do not replay historical migrations on
+an existing site.
+
+`pnpm test:post-dates` builds the production Worker and exercises the post API
+in-process against a disposable SQLite database, including backdated create/edit
+round trips, omitted-date preservation, status toggles and descending ordering.
+It does not open or test authenticated pages.
+
 ## Browser tools
 
 The public **Browser Tools** menu opens `/browser-tools`, a searchable catalog

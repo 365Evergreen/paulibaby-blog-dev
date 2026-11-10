@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { AlertCircle, ArrowDown, ArrowUp, Search } from "lucide-react";
 import { STATUS, fetchCategories, fetchPosts, fmtDate, setPostStatus, toTime, type AdminPost, type Category } from "./postsApi";
 import styles from "../DashboardPage.module.css";
+import { postPublicationDate } from "../../../content/postPublicationDate";
 
 type Tab = "all" | "published" | "draft" | "archived";
 type SortKey = "title" | "date";
@@ -54,7 +55,7 @@ export default function PostsPage() {
       .filter((p) => inTab(p, tab))
       .filter((p) => !q || p.title.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q) || p.excerpt.toLowerCase().includes(q))
       .filter((p) => catId === null || p.category_ids.includes(catId))
-      .sort((a, b) => sort.dir * (sort.key === "title" ? a.title.localeCompare(b.title) : toTime(a.created_at) - toTime(b.created_at)));
+      .sort((a, b) => sort.dir * (sort.key === "title" ? a.title.localeCompare(b.title) : toTime(postPublicationDate(a)) - toTime(postPublicationDate(b))));
   }, [posts, tab, query, category, sort]);
 
   const catName = (id: number) => categories.find((c) => c.id === id)?.name;
@@ -182,7 +183,7 @@ export default function PostsPage() {
                   <td>
                     <span className={`${styles.badge} ${p.published === STATUS.published ? styles.badgeOk : styles.badgeDraft}`}>{statusLabel(p.published)}</span>
                   </td>
-                  <td>{fmtDate(p.created_at)}</td>
+                  <td>{fmtDate(postPublicationDate(p))}</td>
                 </tr>
               ))}
             </tbody>

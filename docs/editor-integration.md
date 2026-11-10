@@ -159,10 +159,11 @@ Run these from this isolated checkout; never add `--remote` to a test command.
 Use the existing `DB`, `CONTENT`, and `media` bindings. Do not provision replacement
 resources or repeat initial-account setup on the deployed site.
 
-Historical pristine migration replay currently fails: `0001_init.sql` indexes
-the absent `published_date` column, and the migration set does not create the
-`pages` table expected by `0008_sample_pages.sql`. The integration intentionally
-does not repair or replay those migrations. The fixture below simulates the
+Historical pristine migration replay is still unsupported: the migration set
+does not create the `pages` table expected by `0008_sample_pages.sql`. The initial
+post index now uses existing columns; `0012_post_published_date.sql` adds the
+publication date separately. Do not replay old migrations on existing sites.
+The fixture below simulates the
 queried schema of an **already-existing site**, not a clean-install proof.
 
 ```powershell

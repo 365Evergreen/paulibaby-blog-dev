@@ -2,6 +2,8 @@ import { expect, test } from "@playwright/test";
 import { searchPublicPosts } from "../../src/content/publicPostSearch.ts";
 import { searchDatabase } from "../fixtures/public-search.mjs";
 
+test.use({ timezoneId: "America/Los_Angeles" });
+
 for (const kind of ["page", "post"]) {
   test(`public ${kind} search stays scoped and resets on navigation`, async ({ page }) => {
     const { db, sqlite } = searchDatabase();
@@ -19,7 +21,7 @@ for (const kind of ["page", "post"]) {
           return route.fulfill({ json: {
             id: kind === "page" ? 1 : 2, slug: kind === "page" ? "the-beatles" : "album-review",
             title: "The Beatles", body: "<p>Public document</p>", cover_image: null,
-            created_at: "2026-01-01", template: null, template_content: {},
+            created_at: "2026-01-01", published_date: "1969-09-26", template: null, template_content: {},
           } });
         }
         if (url.pathname === "/api/posts/the-beatles-abbey-road") {
@@ -35,6 +37,7 @@ for (const kind of ["page", "post"]) {
       await page.goto(kind === "page" ? "/the-beatles" : "/posts/album-review");
       const search = page.getByRole("search");
       await expect(search).toBeVisible();
+      if (kind === "post") await expect(page.locator("article time")).toHaveText("September 26, 1969");
       await search.getByRole("button", { name: "Search", exact: true }).click();
       expect(queries).toEqual([]);
       await search.getByRole("searchbox", { name: "Search posts", exact: true }).fill("abbey");

@@ -4,6 +4,7 @@ import { LegacyBody } from "../../content/LegacyBody";
 import { PublishedDocument } from "../../content/PublishedDocument";
 import RelatedPosts from "../../components/RelatedPosts/RelatedPosts";
 import ScopedPostSearch from "../../components/ScopedPostSearch/ScopedPostSearch";
+import { postPublicationDate } from "../../content/postPublicationDate";
 import styles from './SinglePostPage.module.css';
 
 type Post = {
@@ -14,6 +15,7 @@ type Post = {
   body: string;
   cover_image: string | null;
   created_at: string;
+  published_date?: string | null;
   category_slug?: string | null;
   document?: unknown;
   content_format?: "structured";
@@ -73,7 +75,7 @@ export default function SinglePostPage() {
         )}
         <h1>{post.title}</h1>
         <time className={styles.postDate}>
-          {new Date(post.created_at).toLocaleDateString("en-US", {
+          {new Date(`${postPublicationDate(post).slice(0, 10)}T00:00:00`).toLocaleDateString("en-US", {
             year: "numeric",
             month: "long",
             day: "numeric",

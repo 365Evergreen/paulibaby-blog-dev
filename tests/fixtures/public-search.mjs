@@ -6,7 +6,7 @@ export function searchDatabase() {
     CREATE TABLE pages (id INTEGER PRIMARY KEY, slug TEXT, published INTEGER);
     CREATE TABLE posts (
       id INTEGER PRIMARY KEY, slug TEXT, title TEXT, excerpt TEXT,
-      published INTEGER, created_at TEXT DEFAULT '2026-01-01'
+      published INTEGER, published_date TEXT, created_at TEXT DEFAULT '2026-01-01'
     );
     CREATE TABLE categories (id INTEGER PRIMARY KEY, slug TEXT, name TEXT);
     CREATE TABLE post_categories (post_id INTEGER, category_id INTEGER);

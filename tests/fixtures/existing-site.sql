@@ -2,7 +2,7 @@
 CREATE TABLE posts (
   id INTEGER PRIMARY KEY AUTOINCREMENT, slug TEXT UNIQUE NOT NULL, title TEXT NOT NULL,
   excerpt TEXT NOT NULL DEFAULT '', body TEXT NOT NULL DEFAULT '', cover_image TEXT,
-  published INTEGER NOT NULL DEFAULT 0, created_at TEXT DEFAULT (datetime('now')),
+  published INTEGER NOT NULL DEFAULT 0, published_date TEXT, created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now')), template_id INTEGER,
   template_content TEXT NOT NULL DEFAULT '{}'
 );

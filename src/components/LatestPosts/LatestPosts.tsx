@@ -6,6 +6,7 @@ import {
   type Post,
 } from "../../hooks/usePosts"
 import styles from "./LatestPosts.module.css"
+import { postPublicationDate } from "../../content/postPublicationDate"
 
 export default function LatestPosts() {
   const navigate = useNavigate()
@@ -223,7 +224,7 @@ export default function LatestPosts() {
             </button>
           ) : (
             <div className={styles.date}>
-              {formatDate(post.created_at)}
+              {formatDate(postPublicationDate(post))}
             </div>
           )}
         </div>
