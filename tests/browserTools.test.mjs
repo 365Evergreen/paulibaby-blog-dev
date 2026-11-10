@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
+import { readFileSync } from "node:fs";
 import {
   tools,
   filterTools,
@@ -32,6 +33,33 @@ import {
 import { htmlToMarkdown } from "../src/browser-tools/tools/HtmlToMarkdown.logic.ts";
 import { generatePdf } from "../src/browser-tools/tools/PdfGenerator.logic.ts";
 import { validateDimensions } from "../src/browser-tools/tools/ImageConverter.logic.ts";
+
+test("main navigation groups every tool under Browser Tools without duplicate top-level items", () => {
+  const navigation = JSON.parse(
+    readFileSync(
+      new URL("../src/components/MegaMenu/megaMenu.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const parent = navigation.find((item) => item.href === "/browser-tools");
+  assert.equal(parent.hasMegaMenu, true);
+  assert.equal(parent.requiresAuth, false);
+  assert.deepEqual(
+    parent.columns.map(({ heading }) => heading),
+    ["Development", "File conversion", "Publishing"],
+  );
+  const links = parent.columns.flatMap(({ links }) => links);
+  const paths = tools.map(({ id }) => toolPath(id));
+  assert.equal(links.length, paths.length);
+  assert.deepEqual(links.map(({ href }) => href).sort(), paths.sort());
+  assert.ok(links.every(({ label }) => label.length > 0));
+  assert.ok(navigation.every(({ href }) => !paths.includes(href)));
+  assert.ok(
+    parent.columns
+      .find(({ heading }) => heading === "Publishing")
+      .links.some(({ href }) => href === "/publisher"),
+  );
+});
 
 test("catalog has eight unique routes and searches names, descriptions and tags", () => {
   assert.equal(tools.length, 8);
