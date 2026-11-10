@@ -74,10 +74,11 @@ export default function SinglePage() {
   return (
     <div className={styles.contentContainer}>
       <article className={styles.singlePostFullContent}>
+        <h1>{page.title}</h1>
+
         {page.cover_image && (
           <img src={page.cover_image} alt={page.title} className={styles.singlePostCoverFull} />
         )}
-        <h1>{page.title}</h1>
         {page.content_format === "structured" ? <PublishedDocument document={page.document} /> : page.body && (
           <LegacyBody className={styles.singlePostFullBody} body={page.body} />
         )}

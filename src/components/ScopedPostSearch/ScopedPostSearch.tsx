@@ -39,7 +39,7 @@ export default function ScopedPostSearch({ kind, id, title }: Props) {
 
   return (
     <section className={styles.section} aria-labelledby={headingId}>
-      <h2 id={headingId}>Search posts within {title}</h2>
+      <h2 id={headingId}>Search for more {title}</h2>
       <form className={styles.form} role="search" aria-labelledby={headingId} onSubmit={search}>
         <label className={styles.field}>
           Search posts
@@ -50,8 +50,7 @@ export default function ScopedPostSearch({ kind, id, title }: Props) {
         </label>
         <button type="submit" disabled={state.loading}>Search</button>
       </form>
-      <p className={styles.hint}>Results stay within this {kind}'s slug or categories. Up to 50 published posts are shown.</p>
-      <div aria-live="polite" aria-busy={state.loading}>
+        <div aria-live="polite" aria-busy={state.loading}>
         {state.loading && <p>Searching...</p>}
         {state.error && <p role="alert">{state.error}</p>}
         {state.results?.length === 0 && <p>No matching posts within this {kind}.</p>}
