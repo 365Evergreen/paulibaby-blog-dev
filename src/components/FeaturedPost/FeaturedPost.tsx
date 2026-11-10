@@ -1,5 +1,6 @@
 import { usePosts, formatDate, type Post } from "../../hooks/usePosts";
 import styles from "./FeaturedPost.module.css";
+import { postPublicationDate } from "../../content/postPublicationDate";
 
 function TypeKicker({ type }: { type: Post["type"] }) {
   const labels: Record<Post["type"], string> = {
@@ -58,7 +59,7 @@ export default function FeaturedPost() {
         <div className={styles.body}>
           <div className={styles.meta}>
             <TypeKicker type={post.type} />
-            <time className={styles.date}>{formatDate(post.created_at)}</time>
+            <time className={styles.date}>{formatDate(postPublicationDate(post))}</time>
           </div>
 
           <h2 className={styles.headline}>

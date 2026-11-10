@@ -12,6 +12,7 @@ export interface Post {
   type: PostType
   duration: string | null
   created_at: string
+  published_date?: string | null
   categories?: {
     id: number
     name: string
@@ -24,7 +25,7 @@ export interface PostDetail extends Post {
 }
 
 export function formatDate(iso: string): string {
-  const d = new Date(iso)
+  const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(iso) ? `${iso}T00:00:00` : iso)
 
   const dd = String(d.getDate()).padStart(2, "0")
   const mm = String(d.getMonth() + 1).padStart(2, "0")

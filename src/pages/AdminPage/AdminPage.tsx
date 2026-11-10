@@ -13,6 +13,7 @@ type Post = {
   cover_image: string | null;
   published: number | boolean;
   created_at?: string;
+  published_date?: string | null;
   updated_at?: string;
 };
 
@@ -87,8 +88,9 @@ export default function AdminPage() {
                       </span>
                     </td>
                     <td>
-                      {post.created_at
-                        ? new Date(post.created_at).toLocaleDateString()
+                      {post.published_date
+                        ? new Date(`${post.published_date}T00:00:00`).toLocaleDateString()
+                        : post.created_at ? new Date(post.created_at).toLocaleDateString()
                         : "—"}
                     </td>
                     <td>

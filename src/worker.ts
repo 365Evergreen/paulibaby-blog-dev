@@ -33,6 +33,8 @@ import {
 } from "./accessAuth";
 import { ContentError, getPointers, publishedContent, type ContentIdentity } from "./content/revisionStore";
 import { serveMedia } from "./content/serveMedia";
+import { searchPublicPosts } from "./content/publicPostSearch";
+import { parsePublishedDate, POST_DATE_ORDER } from "./content/postPublicationDate";
 import { handleEditorMetadataRequest } from "./content/editorMetadataApi";
 import { handleContentRequest } from "./content/contentApi";
 import { validatePageDocument, PAGE_SCHEMA_VERSION } from "./content/editorArtifact";
@@ -55,6 +57,7 @@ interface Post {
   body: string;
   cover_image: string | null;
   published: number;
+  published_date: string | null;
   template_id: number | null;
   template_content: string;
   category_ids: number[];
@@ -413,6 +416,19 @@ export default {
     const mediaResponse = await serveMedia(request, env.media);
     if (mediaResponse) return mediaResponse;
 
+    if (path === "/api/search/posts" && method === "GET") {
+      try {
+        const response = await searchPublicPosts(url.searchParams, env.DB, await hasDocumentSchema(env));
+        return new Response(response.body, {
+          status: response.status,
+          headers: { "Content-Type": "application/json", ...CORS },
+        });
+      } catch (error) {
+        console.error(JSON.stringify({ event: "public_post_search_failure", message: error instanceof Error ? error.message : String(error) }));
+        return json({ error: "Post search unavailable" }, 503);
+      }
+    }
+
     // --- List published posts ---
     if (path === "/api/posts" && method === "GET") {
       const catFilter = buildCategoryFilter(url.searchParams.get("category"));
@@ -423,10 +439,10 @@ export default {
         ? " AND NOT EXISTS (SELECT 1 FROM document_content dc WHERE dc.kind = 'post' AND dc.record_id = p.id AND dc.published_key IS NULL)"
         : "";
       const results = await env.DB.prepare(
-        `SELECT p.id, p.slug, p.title, p.excerpt, p.cover_image, p.created_at, ${CATEGORY_SLUG_SQL}
+        `SELECT p.id, p.slug, p.title, p.excerpt, p.cover_image, p.created_at, p.published_date, ${CATEGORY_SLUG_SQL}
          FROM posts p
          ${whereClause}${structuredFilter}
-         ORDER BY p.created_at DESC`
+         ORDER BY ${POST_DATE_ORDER}`
       ).bind(...(catFilter?.binds ?? [])).all();
       const postsWithCats = await Promise.all(
         results.results.map(async (p: any) => ({
@@ -523,7 +539,7 @@ export default {
       const catFilter = buildCategoryFilter(url.searchParams.get("category"));
       const whereClause = catFilter ? `WHERE ${catFilter.clause}` : "";
       const results = await env.DB.prepare(
-        `SELECT p.*, ${CATEGORY_SLUG_SQL} FROM posts p ${whereClause} ORDER BY p.created_at DESC`
+        `SELECT p.*, ${CATEGORY_SLUG_SQL} FROM posts p ${whereClause} ORDER BY ${POST_DATE_ORDER}`
       ).bind(...(catFilter?.binds ?? [])).all();
       const postsWithCats = await Promise.all(
         results.results.map(async (p: any) => ({
@@ -537,6 +553,8 @@ export default {
     // --- Admin: create post ---
     if (path === "/api/admin/posts" && method === "POST") {
       const body = await request.json() as Partial<Post> & { category_ids?: number[] };
+      const publishedDate = parsePublishedDate(body.published_date);
+      if ("error" in publishedDate) return json({ error: publishedDate.error }, 400);
       const slug = body.slug || slugify(body.title || "untitled");
       const template = parsePostTemplate(body);
       if ("error" in template) return json({ error: template.error }, 400);
@@ -547,7 +565,7 @@ export default {
       const existing = await env.DB.prepare("SELECT id FROM posts WHERE slug = ?").bind(slug).first();
       if (existing) return json({ error: "A post with this slug already exists" }, 409);
       const result = await env.DB.prepare(
-        "INSERT INTO posts (slug, title, excerpt, body, cover_image, published, template_id, template_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO posts (slug, title, excerpt, body, cover_image, published, template_id, template_content, published_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
       ).bind(
         slug,
         body.title || "",
@@ -557,6 +575,7 @@ export default {
         body.published ? 1 : 0,
         template.value.templateId,
         template.value.content,
+        publishedDate.value,
       ).run();
       const newId = result.meta.last_row_id as number;
       const categoryIds = body.category_ids || [];
@@ -583,6 +602,8 @@ export default {
 
       if (method === "PUT") {
         const body = await request.json() as Partial<Post> & { category_ids?: number[] };
+        const publishedDate = parsePublishedDate(body.published_date);
+        if ("error" in publishedDate) return json({ error: publishedDate.error }, 400);
         const slug = body.slug || slugify(body.title || "untitled");
         const template = parsePostTemplate(body);
         if ("error" in template) return json({ error: template.error }, 400);
@@ -593,7 +614,7 @@ export default {
         const clash = await env.DB.prepare("SELECT id FROM posts WHERE slug = ? AND id != ?").bind(slug, id).first();
         if (clash) return json({ error: "A post with this slug already exists" }, 409);
         const result = await env.DB.prepare(
-          `UPDATE posts SET slug = ?, title = ?, excerpt = ?, body = ?, cover_image = ?, published = ?, template_id = ?, template_content = ?, updated_at = datetime('now') WHERE id = ?${await legacyWriteGuard(env, "post")}`
+          `UPDATE posts SET slug = ?, title = ?, excerpt = ?, body = ?, cover_image = ?, published = ?, template_id = ?, template_content = ?, published_date = COALESCE(?, published_date, date(created_at)), updated_at = datetime('now') WHERE id = ?${await legacyWriteGuard(env, "post")}`
         ).bind(
           slug,
           body.title || "",
@@ -603,6 +624,7 @@ export default {
           body.published ? 1 : 0,
           template.value.templateId,
           template.value.content,
+          body.published_date === undefined ? null : publishedDate.value,
           id
         ).run();
         if (!result.meta.changes) return legacyWriteFailure(env, { kind: "post", id });

@@ -9,6 +9,7 @@
     "editor:import": "node scripts/editor-artifact.mjs import",
     "test:integration": "node --test tests/*.test.mjs",
     "test:editor-bundle": "pnpm build && playwright test",
+    "test:post-dates": "pnpm build && node --test tests/production/post-publication-date.test.mjs",
     "typecheck:integration": "tsc --noEmit -p tsconfig.editor-integration.json",
     "typecheck:browser-tools": "tsc --noEmit -p tsconfig.browser-tools.json",
     "preview": "vite preview",

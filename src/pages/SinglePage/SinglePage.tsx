@@ -4,6 +4,7 @@ import type { ComponentProps, TemplateComponent } from "../../components/library
 import { LegacyBody } from "../../content/LegacyBody";
 import { PublishedDocument } from "../../content/PublishedDocument";
 import { PageRenderer } from "../../page-builder/PageRenderer";
+import ScopedPostSearch from "../../components/ScopedPostSearch/ScopedPostSearch";
 import styles from "../SinglePostPage/SinglePostPage.module.css";
 
 type PageData = {
@@ -85,6 +86,7 @@ export default function SinglePage() {
       {page.content_format !== "structured" && components.length > 0 && (
         <PageRenderer components={components} content={page.template_content} />
       )}
+      <ScopedPostSearch key={page.id} kind="page" id={page.id} title={page.title} />
     </div>
   );
 }

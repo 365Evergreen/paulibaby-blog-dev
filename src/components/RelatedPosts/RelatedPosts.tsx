@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styles from "./RelatedPosts.module.css";
+import { postPublicationDate } from "../../content/postPublicationDate";
 
 type RelatedPost = {
   id: number;
@@ -9,6 +10,7 @@ type RelatedPost = {
   excerpt: string;
   cover_image: string | null;
   created_at: string;
+  published_date?: string | null;
   category_slug?: string | null;
 };
 
@@ -21,7 +23,7 @@ interface Props {
 }
 
 const formatDate = (raw: string) => {
-  const d = new Date(raw.replace(" ", "T"));
+  const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T00:00:00` : raw.replace(" ", "T"));
   return isNaN(d.getTime())
     ? raw
     : d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
@@ -75,7 +77,7 @@ export default function RelatedPosts({ category, currentSlug, limit = 3 }: Props
             <h3 className={styles.title}>
               <Link to={`/posts/${post.category_slug || category}/${post.slug}`}>{post.title}</Link>
             </h3>
-            <time className={styles.date}>{formatDate(post.created_at)}</time>
+            <time className={styles.date}>{formatDate(postPublicationDate(post))}</time>
           </article>
         ))}
       </div>

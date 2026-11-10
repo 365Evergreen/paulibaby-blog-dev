@@ -151,7 +151,7 @@ export default function PostEditorPage() {
       setEditing({
         ...data,
         published: Boolean(data.published),
-        published_date: data.published_date ?? format(new Date(), "yyyy-MM-dd"),
+        published_date: data.published_date ?? data.created_at?.slice(0, 10) ?? format(new Date(), "yyyy-MM-dd"),
         category_ids: data.category_ids || [],
         template_id: data.template_id ?? null,
         template_content:
@@ -680,8 +680,8 @@ export default function PostEditorPage() {
                           />
                         </div>
                         <small>
-                          Choose when this post should be published. Leave empty
-                          to publish immediately.
+                          Set the publication date, including past dates. Leave
+                          empty to use today's date. This controls ordering, not scheduling.
                         </small>
                       </div>
                     </div>
