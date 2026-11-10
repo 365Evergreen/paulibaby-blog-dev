@@ -1,0 +1,221 @@
+.root {
+  color: var(--fg);
+  --tools-surface: var(--surface);
+  --tools-border: var(--border);
+  display: grid;
+  gap: 1.5rem;
+  min-width: 0;
+}
+.root h1 {
+  font-size: clamp(1.7rem, 4vw, 2.5rem);
+}
+.root h2 {
+  font-size: 1.4rem;
+}
+.root p {
+  overflow-wrap: anywhere;
+}
+.root button,
+.root input,
+.root select,
+.root textarea {
+  font: inherit;
+}
+.root button,
+.root select,
+.root input,
+.root textarea {
+  border: 1px solid var(--tools-border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--fg);
+  padding: 0.55rem 0.75rem;
+  max-width: 100%;
+}
+.root button {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+.root button:hover:not(:disabled) {
+  background: var(--tools-surface);
+}
+.root button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.root label {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+  min-width: 0;
+}
+.root textarea {
+  width: 100%;
+  min-height: 20rem;
+  font-family: var(--mono);
+  resize: vertical;
+}
+.root input[type="checkbox"] {
+  width: auto;
+}
+.root input[type="color"] {
+  width: 4rem;
+  height: 2.8rem;
+  padding: 0.2rem;
+}
+.root input[type="file"] {
+  width: 100%;
+}
+.tool,
+.pane {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+.tool {
+  border-top: 1px solid var(--tools-border);
+  padding-top: 1.5rem;
+}
+.toolbar,
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: end;
+  flex-wrap: wrap;
+}
+.toolbar label {
+  flex: 1 1 9rem;
+}
+.toolbar .checkbox {
+  display: flex;
+  align-items: center;
+  flex: 0 1 auto;
+  padding-block: 0.6rem;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+.pane {
+  padding: 1rem;
+  background: var(--tools-surface);
+  border: 1px solid var(--tools-border);
+  border-radius: var(--radius);
+  align-content: start;
+}
+.error {
+  color: var(--danger);
+  border-left: 3px solid currentColor;
+  padding-left: 0.75rem;
+}
+.stats,
+.note {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.notice {
+  padding: 1rem;
+  border: 1px solid var(--tools-border);
+  border-radius: var(--radius);
+  background: var(--tools-surface);
+  margin: 0;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: 1rem;
+}
+.card {
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  border: 1px solid var(--tools-border);
+  border-radius: var(--radius);
+  color: var(--fg);
+  text-decoration: none;
+  background: var(--tools-surface);
+}
+.card:hover {
+  border-color: var(--accent);
+}
+.card p {
+  margin: 0;
+}
+.card h3 {
+  font-size: 1.15rem;
+}
+.tags {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.navigation a {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--tools-border);
+  border-radius: var(--radius);
+  text-decoration: none;
+}
+.navigation a[aria-current="page"] {
+  color: var(--fg);
+  background: var(--tools-surface);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.previewImage {
+  display: block;
+  max-height: 22rem;
+  max-width: 100%;
+  object-fit: contain;
+  margin: auto;
+}
+.previewPdf {
+  width: 100%;
+  height: 34rem;
+  border: 1px solid var(--tools-border);
+}
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.5rem;
+}
+.root .swatch {
+  display: grid;
+  text-align: left;
+  justify-content: stretch;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+}
+.swatch span:first-child {
+  height: 2.5rem;
+  border: 1px solid var(--tools-border);
+  border-radius: 0.25rem;
+}
+.colorPreview {
+  padding: 1.5rem;
+  border: 1px solid var(--tools-border);
+  border-radius: var(--radius);
+  display: grid;
+  gap: 0.75rem;
+}
+.dropzone {
+  padding: 1rem;
+  border: 2px dashed var(--tools-border);
+  border-radius: var(--radius);
+}
+@media (max-width: 56rem) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .root textarea {
+    min-height: 15rem;
+  }
+}
