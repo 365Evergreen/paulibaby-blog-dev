@@ -23,6 +23,17 @@ const RequireAuth = lazy(() => import("../auth/RequireAuth"));
 const SignInPage = lazy(() => import("../pages/SignInPage/SignInPage"));
 const PagesPage = lazy(() => import("../pages/DashboardPage/Pages/PagesPage"));
 const IntegratedEditorPage = lazy(() => import("../pages/IntegratedEditorPage"));
+const BrowserToolsPage = lazy(() => import("../pages/BrowserToolsPage/BrowserToolsPage"));
+const ToolCatalog = lazy(() => import("../browser-tools/components/ToolCatalog"));
+const ToolRouteError = lazy(() => import("../browser-tools/components/ToolRouteError"));
+const ToolNotFound = lazy(() => import("../browser-tools/components/ToolNotFound"));
+const ThemeDesigner = lazy(() => import("../browser-tools/tools/ThemeDesigner"));
+const CodeFormatter = lazy(() => import("../browser-tools/tools/CodeFormatter"));
+const HtmlToMarkdown = lazy(() => import("../browser-tools/tools/HtmlToMarkdown"));
+const PdfGenerator = lazy(() => import("../browser-tools/tools/PdfGenerator"));
+const ImageConverter = lazy(() => import("../browser-tools/tools/ImageConverter"));
+const DataConverter = lazy(() => import("../browser-tools/tools/DataConverter"));
+const CryptoHasher = lazy(() => import("../browser-tools/tools/CryptoHasher"));
 
 const router = createBrowserRouter(createRoutesFromElements(
         <>
@@ -31,6 +42,17 @@ const router = createBrowserRouter(createRoutesFromElements(
             <Route path="/archive" element={<Archive />} />
             <Route path="/archive/:slug" element={<Archive />} />
             <Route path="/sign-in" element={<SignInPage />} />
+            <Route path="browser-tools" element={<BrowserToolsPage />} errorElement={<ToolRouteError />}>
+              <Route index element={<ToolCatalog />} />
+              <Route path="theme-designer" element={<ThemeDesigner />} />
+              <Route path="formatter" element={<CodeFormatter />} />
+              <Route path="html-to-md" element={<HtmlToMarkdown />} />
+              <Route path="pdf-generator" element={<PdfGenerator />} />
+              <Route path="image-converter" element={<ImageConverter />} />
+              <Route path="data-converter" element={<DataConverter />} />
+              <Route path="crypto-hasher" element={<CryptoHasher />} />
+              <Route path="*" element={<ToolNotFound />} />
+            </Route>
             <Route path="/posts/:category/:slug" element={<SinglePostPage />} />
             <Route path="/posts/:slug" element={<SinglePostPage />} />
             <Route path="/:slug" element={<SinglePage />} />

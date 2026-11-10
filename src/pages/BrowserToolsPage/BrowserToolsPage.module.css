@@ -1,0 +1,9 @@
+.header {
+  max-width: 52rem;
+}
+.header p {
+  margin-bottom: 0;
+}
+.search {
+  width: min(100%, 36rem);
+}

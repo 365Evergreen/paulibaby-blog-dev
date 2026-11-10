@@ -7,6 +7,13 @@
     "hasMegaMenu": false
   },
   {
+    "id": 6,
+    "title": "Browser Tools",
+    "href": "/browser-tools",
+    "requiresAuth": false,
+    "hasMegaMenu": false
+  },
+  {
     "id": 2,
     "title": "Music",
     "href": "/archive?category=music",
