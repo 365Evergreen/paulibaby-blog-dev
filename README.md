@@ -68,7 +68,9 @@ the browser tools do not require that install-time script.
 
 ### Publication designer
 
-Open **Publisher** at `/publisher` from the main navigation or Browser Tools.
+Open **Browser Tools > Publishing > Publisher** at `/publisher`, or choose
+Publication Designer from the Browser Tools catalog. The Browser Tools navigation
+groups all tools under Development, File conversion and Publishing.
 Choose a blank publication or an editable newsletter, report, essay, handbook or
 event programme. Search and category filters narrow the gallery. The old
 `/browser-tools/publication-designer` address redirects to Publisher.

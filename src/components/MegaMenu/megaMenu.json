@@ -11,14 +11,56 @@
     "title": "Browser Tools",
     "href": "/browser-tools",
     "requiresAuth": false,
-    "hasMegaMenu": false
-  },
-  {
-    "id": 7,
-    "title": "Publisher",
-    "href": "/publisher",
-    "requiresAuth": false,
-    "hasMegaMenu": false
+    "hasMegaMenu": true,
+    "columns": [
+      {
+        "heading": "Development",
+        "links": [
+          {
+            "label": "Code Formatter",
+            "href": "/browser-tools/formatter"
+          },
+          {
+            "label": "Fluent Theme Designer",
+            "href": "/browser-tools/theme-designer"
+          },
+          {
+            "label": "WebCrypto & Base64",
+            "href": "/browser-tools/crypto-hasher"
+          }
+        ]
+      },
+      {
+        "heading": "File conversion",
+        "links": [
+          {
+            "label": "HTML to Markdown",
+            "href": "/browser-tools/html-to-md"
+          },
+          {
+            "label": "Image Converter & Resizer",
+            "href": "/browser-tools/image-converter"
+          },
+          {
+            "label": "CSV / JSON Converter",
+            "href": "/browser-tools/data-converter"
+          }
+        ]
+      },
+      {
+        "heading": "Publishing",
+        "links": [
+          {
+            "label": "Publisher",
+            "href": "/publisher"
+          },
+          {
+            "label": "PDF Generator",
+            "href": "/browser-tools/pdf-generator"
+          }
+        ]
+      }
+    ]
   },
   {
     "id": 2,
