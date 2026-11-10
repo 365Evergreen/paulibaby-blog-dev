@@ -8,6 +8,7 @@
     "build": "node scripts/editor-artifact.mjs verify && vite build",
     "editor:import": "node scripts/editor-artifact.mjs import",
     "test:integration": "node --test tests/*.test.mjs",
+    "test:editor-bundle": "pnpm build && playwright test",
     "typecheck:integration": "tsc --noEmit -p tsconfig.editor-integration.json",
     "typecheck:browser-tools": "tsc --noEmit -p tsconfig.browser-tools.json",
     "preview": "vite preview",
@@ -51,6 +52,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.66.0",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.65.0",
     "@tiptap/extension-blockquote": "^3.30.1",
     "@tiptap/extension-bold": "^3.30.1",
     "@tiptap/extension-bullet-list": "^3.30.1",
