@@ -16,6 +16,36 @@ See [Editor integration and rollback](docs/editor-integration.md) for the
 separate-repository artifact contract, local-only upgrade tests, parity gate,
 schema preflight, and rollout status. New editor integration is not yet enabled.
 
+## Video playlists
+
+Public visitors can browse `/video-playlists` and select ordered videos at
+`/video-playlists/:id`. **Dashboard > Video playlists** provides creation,
+editing, video addition/removal/reordering, draft/published status and permanent
+deletion. Existing sessions protect every admin API; editors may create/edit,
+while only admins may delete. Saves replace the playlist and its ordered entries
+in one D1 transaction. Drafts are excluded from public lists and detail endpoints.
+
+Only HTTPS YouTube video URLs (watch, short links, shorts and embed URLs) and
+Vimeo numeric video URLs/player URLs are supported. Unlisted Vimeo hashes are
+preserved. Arbitrary iframe, file, channel and playlist URLs are not supported.
+URLs are validated and normalized on the server. Players use click-to-load consent,
+YouTube's privacy-enhanced domain or Vimeo's do-not-track parameter, no-referrer
+and a restricted sandbox. Providers still receive requests after Play; these
+settings are not a guarantee of anonymity. Remote existence, geographic/account
+restrictions and disabled embedding cannot be reliably detected cross-origin;
+each player includes an accessible provider link and guidance to select another video.
+
+Apply the additive `0013_video_playlists.sql` through the established migration
+process before using the feature. Do not replay historical migrations. No live
+database changes are made by the build or tests. The `video-playlists` slug is
+reserved for this feature; check any existing page using it before rollout.
+Limits are 100 videos, 120-character playlist titles, 200-character video titles,
+2000-character descriptions and the existing 1 MiB JSON request limit. Publishing requires a video.
+
+Focused checks: `node --test tests/videoPlaylists.test.mjs`; after `pnpm build`,
+`node --test tests/production/video-playlists.test.mjs` and
+`pnpm exec playwright test tests/browser/video-playlists.spec.mjs`.
+
 ## Scoped public post search
 
 Public pages and individual posts include a search form for published posts.

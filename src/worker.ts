@@ -38,6 +38,7 @@ import { parsePublishedDate, POST_DATE_ORDER } from "./content/postPublicationDa
 import { handleEditorMetadataRequest } from "./content/editorMetadataApi";
 import { handleContentRequest } from "./content/contentApi";
 import { validatePageDocument, PAGE_SCHEMA_VERSION } from "./content/editorArtifact";
+import { handleVideoPlaylists } from "./content/videoPlaylistsApi";
 
 export interface Env extends AuthEnv {
   DB: D1Database;
@@ -411,6 +412,9 @@ export default {
         return Response.redirect(new URL(safe, url.origin).toString(), 302);
       }
     }
+
+    const playlistResponse = await handleVideoPlaylists(request, env.DB);
+    if (playlistResponse) return playlistResponse;
 
     // ===== PUBLIC API =====
     const mediaResponse = await serveMedia(request, env.media);

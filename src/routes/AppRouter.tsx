@@ -48,6 +48,8 @@ const EditorShell = lazy(() => import("../layouts/EditorShell"));
 const RequireAuth = lazy(() => import("../auth/RequireAuth"));
 const SignInPage = lazy(() => import("../pages/SignInPage/SignInPage"));
 const PagesPage = lazy(() => import("../pages/DashboardPage/Pages/PagesPage"));
+const VideoPlaylistsPage = lazy(() => import("../pages/VideoPlaylists/VideoPlaylistsPage"));
+const AdminPlaylistsPage = lazy(() => import("../pages/VideoPlaylists/AdminPlaylistsPage"));
 const IntegratedEditorPage = lazy(
   () => import("../pages/IntegratedEditorPage"),
 );
@@ -98,6 +100,8 @@ const router = createBrowserRouter(
         <Route path="/archive" element={<Archive />} />
         <Route path="/archive/:slug" element={<Archive />} />
         <Route path="/sign-in" element={<SignInPage />} />
+        <Route path="video-playlists" element={<VideoPlaylistsPage />} />
+        <Route path="video-playlists/:id" element={<VideoPlaylistsPage />} />
         <Route
           path="browser-tools"
           element={<BrowserToolsPage />}
@@ -142,6 +146,7 @@ const router = createBrowserRouter(
             <Route path="users" element={<UsersPage />} />
             <Route path="themes" element={<ThemesPage />} />
             <Route path="pages" element={<PagesPage />} />
+            <Route path="video-playlists" element={<AdminPlaylistsPage />} />
           </Route>
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/admin/post-editor" element={<PostEditorPage />} />
