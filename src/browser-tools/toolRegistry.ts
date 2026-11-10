@@ -2,6 +2,14 @@ import type { ToolDefinition } from "./types";
 
 export const tools: readonly ToolDefinition[] = [
   {
+    id: "publication-designer",
+    name: "Publication Designer",
+    description:
+      "Create Tiptap print publications with page layouts, columns and direct PDF downloads.",
+    category: "document",
+    tags: ["tiptap", "publication", "newsletter", "print", "pdf", "layout"],
+  },
+  {
     id: "theme-designer",
     name: "Fluent Theme Designer",
     description:
@@ -68,5 +76,5 @@ export function filterTools(query: string): readonly ToolDefinition[] {
 }
 
 export function toolPath(id: ToolDefinition["id"]): string {
-  return `/browser-tools/${id}`;
+  return id === "publication-designer" ? "/publisher" : `/browser-tools/${id}`;
 }
