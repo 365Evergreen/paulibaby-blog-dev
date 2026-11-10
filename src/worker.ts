@@ -33,6 +33,7 @@ import {
 } from "./accessAuth";
 import { ContentError, getPointers, publishedContent, type ContentIdentity } from "./content/revisionStore";
 import { serveMedia } from "./content/serveMedia";
+import { searchPublicPosts } from "./content/publicPostSearch";
 import { handleEditorMetadataRequest } from "./content/editorMetadataApi";
 import { handleContentRequest } from "./content/contentApi";
 import { validatePageDocument, PAGE_SCHEMA_VERSION } from "./content/editorArtifact";
@@ -412,6 +413,19 @@ export default {
     // ===== PUBLIC API =====
     const mediaResponse = await serveMedia(request, env.media);
     if (mediaResponse) return mediaResponse;
+
+    if (path === "/api/search/posts" && method === "GET") {
+      try {
+        const response = await searchPublicPosts(url.searchParams, env.DB, await hasDocumentSchema(env));
+        return new Response(response.body, {
+          status: response.status,
+          headers: { "Content-Type": "application/json", ...CORS },
+        });
+      } catch (error) {
+        console.error(JSON.stringify({ event: "public_post_search_failure", message: error instanceof Error ? error.message : String(error) }));
+        return json({ error: "Post search unavailable" }, 503);
+      }
+    }
 
     // --- List published posts ---
     if (path === "/api/posts" && method === "GET") {

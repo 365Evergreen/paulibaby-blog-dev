@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { LegacyBody } from "../../content/LegacyBody";
 import { PublishedDocument } from "../../content/PublishedDocument";
 import RelatedPosts from "../../components/RelatedPosts/RelatedPosts";
+import ScopedPostSearch from "../../components/ScopedPostSearch/ScopedPostSearch";
 import styles from './SinglePostPage.module.css';
 
 type Post = {
@@ -20,26 +21,27 @@ type Post = {
 
 export default function SinglePostPage() {
   const { slug } = useParams<{ slug: string }>();
-  const [post, setPost] = useState<Post | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [result, setResult] = useState<{ slug: string; post: Post | null } | null>(null);
 
   useEffect(() => {
-    fetch(`/api/posts/${slug}`)
+    if (!slug) return;
+    let cancelled = false;
+    fetch(`/api/posts/${encodeURIComponent(slug)}`)
       .then((r) => {
         if (!r.ok) throw new Error("Not found");
-        return r.json();
+        return r.json() as Promise<Post>;
       })
       .then((data) => {
-        setPost(data);
-        setLoading(false);
+        if (!cancelled) setResult({ slug, post: data });
       })
       .catch(() => {
-        setError(true);
-        setLoading(false);
+        if (!cancelled) setResult({ slug, post: null });
       });
+    return () => { cancelled = true; };
   }, [slug]);
 
+  const loading = result?.slug !== slug;
+  const post = result && result.slug === slug ? result.post : null;
   if (loading) {
     return (
       <div className={styles.contentContainer}>
@@ -48,7 +50,7 @@ export default function SinglePostPage() {
     );
   }
 
-  if (error || !post) {
+  if (!post) {
     return (
       <div className={styles.contentContainer}>
         <div className="loading">Post not found.</div>
@@ -79,6 +81,8 @@ export default function SinglePostPage() {
         </time>
         {post.content_format === "structured" ? <PublishedDocument document={post.document} /> : <LegacyBody className={styles.singlePostFullBody} body={post.body} />}
       </article>
+
+      <ScopedPostSearch key={post.id} kind="post" id={post.id} title={post.title} />
 
       {post.category_slug && (
         <RelatedPosts category={post.category_slug} currentSlug={post.slug} />

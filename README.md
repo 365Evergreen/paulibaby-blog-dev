@@ -16,6 +16,22 @@ See [Editor integration and rollback](docs/editor-integration.md) for the
 separate-repository artifact contract, local-only upgrade tests, parity gate,
 schema preflight, and rollout status. New editor integration is not yet enabled.
 
+## Scoped public post search
+
+Public pages and individual posts include a search form for published posts.
+The server derives a page's scope from its stored slug; a post's scope is its
+stored slug plus all assigned category slugs. A result's slug or any category
+slug/name must contain one of those scope values (case-insensitive, treating
+hyphens/underscores as spaces), **and** its title, excerpt, slug or category must
+match the visitor's query. For example, a `the-beatles` page never returns an
+unrelated Rolling Stones post merely because both match the query.
+
+`GET /api/search/posts?kind=page&id=1&q=abbey` returns at most 50 published post
+summaries, newest first. Empty queries return no results; unpublished sources
+and posts are excluded, including structured records without published pointers.
+The query cannot override the stored source scope. Search does not access drafts,
+change templates or enable the staged editor rollout.
+
 ## Browser tools
 
 The public **Browser Tools** menu opens `/browser-tools`, a searchable catalog
