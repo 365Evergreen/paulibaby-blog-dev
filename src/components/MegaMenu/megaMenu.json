@@ -7,6 +7,13 @@
     "hasMegaMenu": false
   },
   {
+    "id": 7,
+    "title": "Video playlists",
+    "href": "/video-playlists",
+    "requiresAuth": false,
+    "hasMegaMenu": false
+  },
+  {
     "id": 6,
     "title": "Browser Tools",
     "href": "/browser-tools",

@@ -6,6 +6,7 @@ const items = [
   { to: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/admin/dashboard/posts", label: "Posts", icon: FileText },
   { to: "/admin/dashboard/pages", label: "Pages", icon: Layers2 },
+  { to: "/admin/dashboard/video-playlists", label: "Video playlists", icon: Layers2 },
   { to: "/admin/dashboard/templates", label: "Templates", icon: LayoutTemplate },
   { to: "/admin/media-library", label: "Media", icon: Image },
   { to: "/admin/dashboard/users", label: "Users", icon: Users },
